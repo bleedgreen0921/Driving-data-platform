@@ -1,0 +1,30 @@
+# 设计约定，尚未实现。null 表示需由后续部署填写。
+dataset:
+  name: nuscenes
+  root: null
+  version: null
+model:
+  name: Qwen3-VL-Embedding-2B
+  root: null
+  revision: null
+  output_dimension: 1024
+  normalize: true
+storage:
+  output_root: null
+postgres:
+  dsn: null
+  vector_dimension: 1024
+clickhouse:
+  url: null
+hadoop:
+  hdfs_uri: null
+  yarn_resource_manager: null
+hive:
+  metastore_uri: null
+  database: null
+spark:
+  master: null
+datax:
+  home: null
+dolphinscheduler:
+  url: null
