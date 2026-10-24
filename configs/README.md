@@ -15,3 +15,5 @@ PYTHONPATH=src /home/qjj/.venvs/py312/bin/python -m driving_data_platform.common
 [证据示例](asset-evidence.example.json)仅保留 dataset。填写 source_url、license、license_basis、acquired_at（ISO 日期）、version、checksums；未知值不能当作确认。checksums 至少覆盖 13 张元数据表，为根目录相对路径到 SHA-256 的映射，不允许越界。真实证据留在仓库外，示例空值不可作为实际资产确认。
 
 数据库连接和外部服务配置仅为后续设计占位，秘密由部署环境注入；不得填入版本库。向量维度、模型路径、revision 等字段已从公共示例删除。
+
+阶段 0 新增独立的 [部署配置示例](platform.example.yaml)：部署根、阶段 1 已核验镜像摘要、后续候选版本、资源限额、磁盘预算及秘密环境变量名。该文件不合并进数据身份计算；自动回归验证附加部署字段也不会改变 ODS 身份。示例磁盘预算留空，未核验的组件镜像留空；不得将示例视为全栈可部署配置。第一次部署前填入经盘点的预算，使用 common.resources CLI 做只读静态门禁，随后按 [基础设施说明](../infra/docker/README.md)准备项目资源。当前 resources 检查为“尚未分配全部预算”的初次门禁；后续扩展须扣除已分配项目占用后另行核算剩余预算，不能重复计算已下载镜像，也不能把其他项目占用当作本项目预算额度。

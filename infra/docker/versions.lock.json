@@ -1,0 +1,17 @@
+{
+  "verified_at": "2026-10-24",
+  "scope": "stage-1-only",
+  "hadoop": {
+    "version": "3.4.3",
+    "image": "apache/hadoop@sha256:127774dadab40ce84df7ac668a7a8c99945688b3fe336f1388f4477ca33e1529",
+    "image_size_bytes": 2197432114,
+    "java": "Temurin 11.0.28+6",
+    "platform": "linux/amd64"
+  },
+  "postgres": {
+    "version": "16.15",
+    "image": "postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97",
+    "image_size_bytes": 636270287,
+    "platform": "linux/amd64"
+  }
+}

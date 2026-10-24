@@ -1,5 +1,3 @@
-# 维护脚本
+# scripts
 
-当前无活动 GPU 或模型探针。旧 GPU C++ 探针已随向量化代码退出工程，源码在仓库外项目归档中保留，调查结果见[历史记录](../docs/archive/README.md)。
-
-设计约定，尚未实现：后续仅在对应阶段增加本项目的部署检查、数仓验证和发布维护脚本，不操作其他项目资源。
+[platform.py](platform.py)管理项目已锁定的阶段 1 基础设施，支持 prepare/start/status/stop/recreate。输入、持久化和秘密约束、运行及停止命令见 [基础设施说明](../infra/docker/README.md)。没有业务 DAG、发布或 API 执行能力，后续能力为**设计约定，尚未实现**。

@@ -26,4 +26,5 @@ logs/
 *.ckpt
 .DS_Store
 .env
+# Keep active design/acceptance documents reviewable; historical environment archives stay local.
 docs/
