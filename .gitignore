@@ -25,5 +25,5 @@ logs/
 *.pth
 *.ckpt
 .DS_Store
-docs/
 .env
+docs/

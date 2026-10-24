@@ -1,9 +1,17 @@
-# 配置
+# 数据配置与资产预检
 
-设计约定，尚未实现。[应用配置示例](application.example.yaml) 展示拟议字段，[环境变量示例](../.env.example) 展示部署变量。尚无配置加载器、变量插值及优先级实现；未来约定环境变量覆盖本地配置，启动前验证必填项，禁止静默回退至实际环境。
+已实现安全 YAML、显式环境变量覆盖及只读数据预检。数据库、大数据和调度字段均为**设计约定，尚未实现**；示例不是部署脚本。
 
-数据、模型、输出路径必须指向仓库外专用目录。null 或空字符串表示未配置；连接凭据由部署环境注入，不写入示例。1024 是目标向量维度，不代表模型接口已验证。
+```bash
+PYTHONPATH=src /home/qjj/.venvs/py312/bin/python -m driving_data_platform.common.preflight --config configs/application.local.yaml
+```
 
-项目 Python 固定为 `/home/qjj/.venvs/py312`。真实本机数据与模型位置记录在[当前状态](../docs/current-status.md)，不写入可复用配置示例；本地配置继续使用忽略规则保护。官方 mini 的 dataset.root 应指向包含 `v1.0-mini`、`samples`、`sweeps`、`maps` 的根目录，dataset.version 为 `v1.0-mini`。模型本地默认池化维度 2048 与项目目标 1024 不可混同。
+默认且唯一任务为 dataset；`--task dataset` 可保留，历史 `all`/`model` 已移除。成功输出 JSON 并退出 0；数据/配置门禁失败退出 2，输出不泄露凭据或连接信息。预检不创建输出、不隐式下载、不导入模型、不连接服务。
 
-设计约定，尚未实现：宿主机和容器分别显式配置路径及服务地址，不假设相同绝对路径或 localhost 可通用。容器只读挂载输入、独立挂载输出；配置加载与路径预检是路线图阶段 0 的首个实现任务，当前示例仍不可执行。
+复制[应用示例](application.example.yaml)至忽略的本地配置，填写仓库外绝对 dataset.root、dataset.version、storage.output_root、assets.evidence_file。加载器不自动读取 `.env`；环境变量显式空值也覆盖文件值。模型环境变量已不再识别，多余历史证据不会被数据任务消费。
+
+路径解析符号链接后必须在仓库外且不能包含仓库；输入输出不得重叠。数据根必须含版本目录、samples、sweeps、maps，13 张元数据表必须是记录数组。核心关系和媒体全量对账由[ODS 接入](../docs/ingestion.md)执行。
+
+[证据示例](asset-evidence.example.json)仅保留 dataset。填写 source_url、license、license_basis、acquired_at（ISO 日期）、version、checksums；未知值不能当作确认。checksums 至少覆盖 13 张元数据表，为根目录相对路径到 SHA-256 的映射，不允许越界。真实证据留在仓库外，示例空值不可作为实际资产确认。
+
+数据库连接和外部服务配置仅为后续设计占位，秘密由部署环境注入；不得填入版本库。向量维度、模型路径、revision 等字段已从公共示例删除。

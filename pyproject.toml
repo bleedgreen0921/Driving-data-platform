@@ -5,10 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "driving-data-platform"
 version = "0.1.0"
-description = "Independent driving data platform skeleton and design documents"
+description = "Independent driving data platform"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = ["PyYAML==6.0.3"]
+
+[project.optional-dependencies]
+test = ["pytest==8.4.2"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

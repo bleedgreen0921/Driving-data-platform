@@ -1,3 +1,3 @@
-# infra/hive
+# Hive 基础设施
 
-设计约定，尚未实现。预留 Hive 服务及 metastore 配置，后续验证后端和 catalog 兼容。
+设计约定，尚未实现。预留 metastore、catalog 和独立元数据库配置；与 Hadoop/Spark/JDK 组合逐项实测，不把业务发布表当元数据库。

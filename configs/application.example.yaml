@@ -1,19 +1,14 @@
-# 设计约定，尚未实现。null 表示需由后续部署填写。
+# 配置及数据资产预检已实现；外部服务字段为设计约定，尚未实现。
 dataset:
   name: nuscenes
   root: null
   version: null
-model:
-  name: Qwen3-VL-Embedding-2B
-  root: null
-  revision: null
-  output_dimension: 1024
-  normalize: true
+assets:
+  evidence_file: null
 storage:
   output_root: null
 postgres:
   dsn: null
-  vector_dimension: 1024
 clickhouse:
   url: null
 hadoop:
