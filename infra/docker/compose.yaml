@@ -1,89 +1,44 @@
-# Stage 1 verified infrastructure; full-stack services remain unimplemented.
-# See docs/current-status.md for the acceptance scope.
-name: driving-data-platform
-x-common: &common
-  restart: "no"
-  networks: [platform]
-  logging:
-    driver: json-file
-    options:
-      max-size: 10m
-      max-file: "3"
+name: driving-data-platform-mac
 services:
   postgres:
-    <<: *common
-    profiles: [infra, full]
-    image: ${DDP_POSTGRES_IMAGE:?digest-pinned image required}
-    mem_limit: 768m
-    cpus: 1
-    pids_limit: 256
+    image: ${DDP_POSTGRES_IMAGE:?run prepare-images first}
     environment:
-      POSTGRES_USER: ddp_admin
-      POSTGRES_PASSWORD: ${DDP_ADMIN_PASSWORD:?required}
-      DDP_CONTROL_PASSWORD: ${DDP_CONTROL_PASSWORD:?required}
-      DDP_HIVE_PASSWORD: ${DDP_HIVE_PASSWORD:?required}
-      DDP_SCHEDULER_PASSWORD: ${DDP_SCHEDULER_PASSWORD:?required}
-      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      POSTGRES_USER: ddp
+      POSTGRES_DB: ddp
+      POSTGRES_PASSWORD: ${DDP_POSTGRES_PASSWORD:?required}
+    ports:
+      - '127.0.0.1:55433:5432'
     volumes:
-      - ${DDP_PERSISTENCE_ROOT:?required}/postgres:/var/lib/postgresql/data
-      - ./postgres/initialize.sh:/docker-entrypoint-initdb.d/10-ddp.sh:ro
+      - postgres-data:/var/lib/postgresql/data
+    mem_limit: 1g
+    cpus: 1
     healthcheck:
-      test: [CMD-SHELL, "pg_isready -U ddp_admin -d postgres"]
-      interval: 5s
+      test: ['CMD-SHELL', 'pg_isready -U ddp -d ddp']
+      interval: 2s
       timeout: 3s
-      retries: 20
-  namenode:
-    <<: *common
-    profiles: [infra, full]
-    image: ${DDP_HADOOP_IMAGE:?digest-pinned image required}
-    hostname: namenode
-    mem_limit: 768m
-    cpus: 1
-    pids_limit: 256
-    environment:
-      HADOOP_CONF_DIR: /etc/ddp-hadoop
-      HADOOP_HEAPSIZE_MAX: 384
-    entrypoint: [/bin/bash, -euc]
-    command:
-      - |
-        if [ ! -f /data/name/current/VERSION ]; then
-          if [ -n "$$(ls -A /data/name)" ]; then
-            echo 'Nonempty unformatted NameNode directory; refusing format' >&2
-            exit 2
-          fi
-          hdfs namenode -format -nonInteractive
-        fi
-        exec hdfs namenode
+      retries: 30
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+  spark:
+    image: ${DDP_SPARK_IMAGE:?run prepare-images first}
+    profiles: [batch]
+    user: '0:0'
+    hostname: ddp-spark
+    extra_hosts: ["ddp-spark:127.0.0.1"]
+    network_mode: none
     volumes:
-      - ../hadoop/config:/etc/ddp-hadoop:ro
-      - ${DDP_PERSISTENCE_ROOT:?required}/namenode:/data/name
-      - ${DDP_ODS_ROOT:?required}:/input-ods:ro
-    healthcheck:
-      test: [CMD-SHELL, "hdfs dfsadmin -safemode get | grep -q 'OFF'"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-  datanode:
-    <<: *common
-    profiles: [infra, full]
-    image: ${DDP_HADOOP_IMAGE:?digest-pinned image required}
-    hostname: datanode
-    mem_limit: 512m
-    cpus: 1
-    pids_limit: 256
+      - ${DDP_OUTPUT_ROOT}/ingestion:/ods:ro
+      - ${DDP_OUTPUT_ROOT}/warehouse:/warehouse
+      - ../../src:/app/src:ro
+      - ../../sql/spark:/app/sql:ro
     environment:
-      HADOOP_CONF_DIR: /etc/ddp-hadoop
-      HADOOP_HEAPSIZE_MAX: 256
-    entrypoint: [hdfs, datanode]
-    volumes:
-      - ../hadoop/config:/etc/ddp-hadoop:ro
-      - ${DDP_PERSISTENCE_ROOT:?required}/datanode:/data/data
-    healthcheck:
-      test: [CMD-SHELL, "hdfs dfsadmin -report | grep -q 'Live datanodes (1)'"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-networks:
-  platform:
-    name: driving-data-platform
-    internal: true
+      SPARK_LOCAL_IP: 127.0.0.1
+      PYTHONPATH: /app/src
+    mem_limit: 3g
+    cpus: 2
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+volumes:
+  postgres-data:

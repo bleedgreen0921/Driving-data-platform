@@ -2,28 +2,17 @@
 
 import argparse
 import json
+import platform
 import shutil
+import subprocess
 from pathlib import Path
 
 from driving_data_platform.common.config import ConfigError, external_path, load_config
 
 GIB = 1024**3
 MIB = 1024**2
-MEMORY_FIELDS = (
-    "hdfs_mib",
-    "yarn_spark_mib",
-    "metastore_mib",
-    "postgres_mib",
-    "clickhouse_mib",
-    "scheduler_mib",
-    "api_executor_mib",
-)
-DISK_FIELDS = (
-    "images_and_build",
-    "hdfs_and_warehouse",
-    "databases_and_generations",
-    "backups_and_temporary",
-)
+MEMORY_FIELDS = ("spark_mib", "postgres_mib", "api_mib", "host_reserve_mib")
+DISK_FIELDS = ("images", "warehouse", "databases", "temporary")
 
 
 def positive(section: dict, key: str) -> int:
@@ -76,13 +65,37 @@ def inspect(config: dict, repository: Path) -> dict:
     target = external_path(value, repository, "deployment.persistence_root")
     if not target.is_dir():
         raise ConfigError("deployment.persistence_root: existing directory required")
-    fields = dict(
-        line.split(":", 1) for line in Path("/proc/meminfo").read_text().splitlines()
-    )
-    available = int(fields["MemAvailable"].split()[0]) * 1024
-    return evaluate(
+    if platform.system() == "Darwin":
+        # 用物理内存减固定系统预留；运行时峰值仍需独立观测。
+        available = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"]))
+    else:
+        fields = dict(
+            line.split(":", 1)
+            for line in Path("/proc/meminfo").read_text().splitlines()
+        )
+        available = int(fields["MemAvailable"].split()[0]) * 1024
+    report = evaluate(
         config, available, shutil.disk_usage("/").free, shutil.disk_usage(target).free
     )
+    info = json.loads(
+        subprocess.check_output(
+            ["docker", "info", "--format", "{{json .}}"], timeout=20
+        )
+    )
+    vm_budget = (
+        sum(
+            positive(config["resources"], field)
+            for field in ("spark_mib", "postgres_mib")
+        )
+        * MIB
+    )
+    report["docker_memory_bytes"] = info["MemTotal"]
+    report["docker_cpu_count"] = info["NCPU"]
+    report["checks"]["docker_memory"] = info["MemTotal"] >= vm_budget + GIB
+    # Docker Desktop 的可用盘需在真实镜像准备后检查，不能用宿主空闲冒充。
+    report["docker_disk_status"] = "pending-image-preparation"
+    report["status"] = "passed" if all(report["checks"].values()) else "blocked"
+    return report
 
 
 def main(argv: list[str] | None = None) -> int:

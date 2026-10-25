@@ -1,0 +1,15 @@
+.git
+.env
+.env.*
+configs/*.local.*
+configs/application.yaml
+__pycache__
+**/__pycache__
+.pytest_cache
+.ruff_cache
+data
+models
+weights
+outputs
+artifacts
+logs

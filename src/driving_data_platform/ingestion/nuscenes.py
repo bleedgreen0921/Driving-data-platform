@@ -344,7 +344,9 @@ def verify_snapshot(directory: Path) -> dict:
         raise IngestionError("snapshot: invalid completion manifest") from None
 
 
-def ingest(config: dict, repository: Path) -> dict:
+def ingest(config: dict, repository: Path, *, fail_at: str | None = None) -> dict:
+    if fail_at not in {None, "before_rename", "after_rename"}:
+        raise IngestionError("fault: unsupported checkpoint")
     preflight(config, repository, "dataset")
     root = external_path(
         required(config, "dataset", "root"), repository, "dataset.root"
@@ -448,7 +450,11 @@ def ingest(config: dict, repository: Path) -> dict:
                     os.fsync(fd)
                 finally:
                     os.close(fd)
+            if fail_at == "before_rename":
+                raise IngestionError("fault: before_rename")
             staging.rename(target)
+            if fail_at == "after_rename":
+                raise IngestionError("fault: after_rename")
             fd = os.open(snapshots, os.O_DIRECTORY)
             try:
                 os.fsync(fd)

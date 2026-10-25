@@ -1,3 +1,1 @@
-# 前端
-
-设计约定，尚未实现。采用 React/TypeScript/Vite 方向，围绕已发布 generation 提供场景/关键帧筛选、相机图片、类别/传感器分析及清单导出。只经 API 访问，不能直连 PostgreSQL、ClickHouse 或 Hive。不做语义检索或模型推理。工具版本在阶段 6 实测后锁定。
+原生 HTML/CSS/JavaScript 工作台，由 FastAPI 提供，访问 http://127.0.0.1:18080 。显示质量、分布、筛选、图片、标注及版本绑定的导出；无网页管理后台。

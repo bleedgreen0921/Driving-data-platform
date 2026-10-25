@@ -17,14 +17,6 @@ ENV_FIELDS = {
     "DDP_OUTPUT_ROOT": ("storage", "output_root"),
     "DDP_ASSET_EVIDENCE": ("assets", "evidence_file"),
     "DDP_POSTGRES_DSN": ("postgres", "dsn"),
-    "DDP_CLICKHOUSE_URL": ("clickhouse", "url"),
-    "DDP_HDFS_URI": ("hadoop", "hdfs_uri"),
-    "DDP_YARN_RESOURCE_MANAGER": ("hadoop", "yarn_resource_manager"),
-    "DDP_HIVE_METASTORE_URI": ("hive", "metastore_uri"),
-    "DDP_HIVE_DATABASE": ("hive", "database"),
-    "DDP_SPARK_MASTER": ("spark", "master"),
-    "DDP_DATAX_HOME": ("datax", "home"),
-    "DDP_DOLPHINSCHEDULER_URL": ("dolphinscheduler", "url"),
 }
 
 

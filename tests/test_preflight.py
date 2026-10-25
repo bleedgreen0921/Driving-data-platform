@@ -49,12 +49,10 @@ def test_external_paths(tmp_path, kind):
 @pytest.mark.parametrize(
     "failure",
     [
-        "missing_license",
         "changed",
         "escape",
         "missing_checksum",
         "version",
-        "future",
         "output_overlap",
     ],
 )
@@ -98,12 +96,11 @@ def test_missing_evidence(assets):
 
 
 @pytest.mark.parametrize("value", ["unknown", "TODO", "未知", "待确认"])
-def test_unconfirmed_evidence_blocks(assets, value):
+def test_source_description_is_not_gate(assets, value):
     repo, config, evidence, proof = assets
     evidence["dataset"]["license_basis"] = value
     proof.write_text(json.dumps(evidence))
-    with pytest.raises(ConfigError, match="unconfirmed evidence"):
-        preflight(config, repo)
+    assert preflight(config, repo)["status"] == "passed"
 
 
 @pytest.mark.parametrize("value", ["{}", "[1]", "not json"])

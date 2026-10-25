@@ -1,25 +1,9 @@
-# 配置及数据资产预检已实现；外部服务字段为设计约定，尚未实现。
 dataset:
-  name: nuscenes
   root: null
-  version: null
+  version: v1.0-mini
 assets:
   evidence_file: null
 storage:
   output_root: null
 postgres:
   dsn: null
-clickhouse:
-  url: null
-hadoop:
-  hdfs_uri: null
-  yarn_resource_manager: null
-hive:
-  metastore_uri: null
-  database: null
-spark:
-  master: null
-datax:
-  home: null
-dolphinscheduler:
-  url: null

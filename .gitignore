@@ -26,5 +26,8 @@ logs/
 *.ckpt
 .DS_Store
 .env
-# Keep active design/acceptance documents reviewable; historical environment archives stay local.
+# Active documents are versioned; runtime artifacts stay outside the repository.
 docs/
+CHANGE_REQUESTS.md
+verify.sh
+requirements.lock

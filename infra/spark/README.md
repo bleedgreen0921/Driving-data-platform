@@ -1,3 +1,1 @@
-# Spark 计算环境
-
-设计约定，尚未实现。使用容器自身运行环境，验证 JDK、Scala、Hadoop、Hive 和容器 Python 兼容性；阶段 2 最小读写通过后实施分层作业。不得挂载宿主机共享虚拟环境。
+正式 Spark SQL local 作业位于 src/driving_data_platform/warehouse/spark_job.py，SQL 位于 sql/spark。使用 `./platform.sh build --version <新版本>`，输入只读，暂存产物独立对账后提交。真实 arm64 镜像摘要见 ../docker/versions.lock.json 。

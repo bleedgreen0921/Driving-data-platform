@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Independent driving data platform"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = ["PyYAML==6.0.3"]
+dependencies = ["PyYAML==6.0.3", "fastapi==0.162.0", "uvicorn==0.54.0", "psycopg[binary]==3.3.6"]
 
 [project.optional-dependencies]
 test = ["pytest==8.4.2"]
@@ -20,3 +20,6 @@ testpaths = ["tests"]
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["driving_data_platform*"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/driving_data_platform/api/app.py" = ["B008"]

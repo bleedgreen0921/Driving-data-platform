@@ -10,19 +10,19 @@ from driving_data_platform.common.resources import GIB, evaluate, main
 @pytest.fixture
 def budget():
     config = load_config(Path("configs/platform.example.yaml"), {})
-    config["disk_budget_gib"] = dict(zip(config["disk_budget_gib"], [14, 3, 3, 4]))
+    config["disk_budget_gib"] = dict(zip(config["disk_budget_gib"], [8, 4, 4, 8]))
     return config
 
 
 def test_exact_boundary(budget):
-    report = evaluate(budget, 11005853696, 36 * GIB, 36 * GIB)
+    report = evaluate(budget, 13421772800, 36 * GIB, 36 * GIB)
     assert report["status"] == "passed"
     assert not any(report["shortfall_bytes"].values())
 
 
 @pytest.mark.parametrize("resource", ["memory", "root_disk", "target_disk"])
 def test_shortfall_is_not_hidden(budget, resource):
-    capacities = {"memory": 11005853696, "root_disk": 36 * GIB, "target_disk": 36 * GIB}
+    capacities = {"memory": 13421772800, "root_disk": 36 * GIB, "target_disk": 36 * GIB}
     capacities[resource] -= 1
     report = evaluate(budget, *capacities.values())
     assert report["status"] == "blocked"
@@ -31,7 +31,7 @@ def test_shortfall_is_not_hidden(budget, resource):
 
 @pytest.mark.parametrize("value", [None, True, -1, 0, "14"])
 def test_unverified_budget_rejected(budget, value):
-    budget["disk_budget_gib"]["images_and_build"] = value
+    budget["disk_budget_gib"]["images"] = value
     with pytest.raises(ConfigError):
         evaluate(budget, 100 * GIB, 100 * GIB, 100 * GIB)
 

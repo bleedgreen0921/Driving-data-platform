@@ -1,54 +1,14 @@
-# 阶段 1 镜像已实测，版本锁见 infra/docker/versions.lock.json。
-# 其他服务为设计约定，尚未实现；此配置不参与 ODS 快照身份。
 deployment:
-  project_name: driving-data-platform
   persistence_root: null
-  host_bind: 127.0.0.1
-  container_network: driving-data-platform
-  profiles: [infra, compute, serving, scheduler, full]
-versions:
-  hadoop: 3.4.3
-  hive: 4.2.1
-  spark: null
-  postgres: "16.15"
-  clickhouse: null
-  dolphinscheduler: null
-images:
-  hadoop_digest: sha256:127774dadab40ce84df7ac668a7a8c99945688b3fe336f1388f4477ca33e1529
-  hive_digest: null
-  spark_digest: null
-  postgres_digest: sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97
-  clickhouse_digest: null
-  dolphinscheduler_digest: null
 resources:
-  hdfs_mib: 1280
-  yarn_spark_mib: 4352
-  metastore_mib: 768
-  postgres_mib: 768
-  clickhouse_mib: 1280
-  scheduler_mib: 1536
-  api_executor_mib: 512
-  batch_concurrency: 1
-  spark_executors: 1
-  spark_executor_cores: 2
-  spark_dynamic_allocation: false
+  spark_mib: 3072
+  postgres_mib: 1024
+  api_mib: 512
+  host_reserve_mib: 8192
   max_growth_gib: 24
   root_reserve_gib: 12
-# 必须先填入完整磁盘预算；null 不能作为通过门禁。
 disk_budget_gib:
-  images_and_build: null
-  hdfs_and_warehouse: null
-  databases_and_generations: null
-  backups_and_temporary: null
-services:
-  postgres_control_database: ddp_control
-  postgres_hive_database: ddp_hive
-  postgres_scheduler_database: ddp_scheduler
-  hdfs_replication: 1
-  spark_master: yarn
-  scheduler_mode: standalone
-secrets:
-  control_password_env: DDP_CONTROL_PASSWORD
-  hive_password_env: DDP_HIVE_PASSWORD
-  scheduler_password_env: DDP_SCHEDULER_PASSWORD
-  executor_token_env: DDP_EXECUTOR_TOKEN
+  images: 8
+  warehouse: 4
+  databases: 4
+  temporary: 8

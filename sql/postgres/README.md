@@ -1,3 +1,1 @@
-# PostgreSQL 控制数据
-
-设计约定，尚未实现。预留任务、generation、发布审计及唯一活动指针的迁移；不复制全部数仓明细，不安装 pgvector。阶段 4 实测跨库装载对账、事务切换、并发及回滚后再交付真实 SQL。
+使用 `./platform.sh init-db` 创建 schema.sql 中的控制与服务表。装载和发布见 [运行说明](../../docs/deployment.md)，不要手工修改已就绪版本。

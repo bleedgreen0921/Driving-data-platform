@@ -3,7 +3,8 @@
     "source_url": "",
     "license": "",
     "license_basis": "",
-    "acquired_at": "",
+    "acquired_at": null,
+    "observed_at": "",
     "version": "v1.0-mini",
     "checksums": {}
   }

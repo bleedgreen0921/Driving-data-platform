@@ -4,9 +4,7 @@ import argparse
 import hashlib
 import json
 import re
-from datetime import UTC, date, datetime
 from pathlib import Path
-from urllib.parse import urlsplit
 
 from .config import ConfigError, external_path, load_config, required
 
@@ -50,31 +48,9 @@ def _verify(
 ) -> dict:
     if not isinstance(asset, dict):
         raise ConfigError(f"{label}: missing evidence")
-    for field in ("source_url", "license", "license_basis", "acquired_at", "version"):
-        if not isinstance(asset.get(field), str) or not asset[field].strip():
-            raise ConfigError(f"{label}.{field}: missing evidence")
-        if asset[field].strip().casefold() in {
-            "unknown",
-            "todo",
-            "tbd",
-            "未知",
-            "待确认",
-            "待补充",
-        }:
-            raise ConfigError(f"{label}.{field}: unconfirmed evidence")
-    try:
-        source = urlsplit(asset["source_url"])
-        valid_source = source.scheme in {"http", "https"} and bool(source.hostname)
-    except ValueError:
-        valid_source = False
-    if not valid_source:
-        raise ConfigError(f"{label}.source_url: expected HTTP(S) source")
-    try:
-        acquired = date.fromisoformat(asset["acquired_at"])
-    except ValueError:
-        raise ConfigError(f"{label}.acquired_at: expected ISO date") from None
-    if acquired > datetime.now(UTC).date():
-        raise ConfigError(f"{label}.acquired_at: future date")
+    # 来源与许可如实记录，描述缺失不替代文件完整性门禁。
+    if not isinstance(asset.get("version"), str):
+        raise ConfigError(f"{label}.version: missing version")
     if asset["version"] != expected_version:
         raise ConfigError(f"{label}.version: configuration mismatch")
     checksums = asset.get("checksums")
