@@ -65,7 +65,7 @@ def reconcile(source: Path, directory: Path):
     return counts
 
 
-def build(root: Path, repo: Path, version="warehouse-v2", *, fail=False) -> dict:
+def build(root: Path, repo: Path, version="warehouse-v3", *, fail=False) -> dict:
     if not re.fullmatch(r"[a-zA-Z0-9_-]{1,64}", version):
         raise ValueError("处理版本只能包含字母、数字、下划线与短横线")
     water = json.loads((root / "ingestion/watermark.json").read_text())
@@ -112,6 +112,8 @@ def build(root: Path, repo: Path, version="warehouse-v2", *, fail=False) -> dict
         "run",
         "--rm",
         "--no-deps",
+        "--pull",
+        "never",
         "spark",
         "/opt/spark/bin/spark-submit",
         "--master",

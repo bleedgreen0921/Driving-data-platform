@@ -18,6 +18,12 @@ def usage(root: Path, repo: Path):
     )
     images = json.loads((repo / "infra/docker/versions.lock.json").read_text())
     image_bytes = sum(item["size_bytes"] for item in images.values())
+    candidate_lock = repo / "infra/metastore/runtime.lock.json"
+    if candidate_lock.exists():
+        candidate = json.loads(candidate_lock.read_text())
+        image_bytes += sum(
+            candidate[key]["size_bytes"] for key in ("hive", "spark_client")
+        )
     base = [
         "docker",
         "compose",
@@ -49,7 +55,7 @@ def usage(root: Path, repo: Path):
     )
     with connect(root) as conn:
         databases = conn.execute(
-            "SELECT datname,pg_database_size(oid) FROM pg_database WHERE datname='ddp' OR datname LIKE 'restore_%' ORDER BY datname"
+            "SELECT datname,pg_database_size(oid) FROM pg_database WHERE datname='ddp' OR datname='ddp_metastore_v410' OR datname LIKE 'restore_%' ORDER BY datname"
         ).fetchall()
         generations = conn.execute(
             "SELECT generation,processing_version,status FROM control.generation ORDER BY created_at"

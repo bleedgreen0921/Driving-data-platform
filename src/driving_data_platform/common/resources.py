@@ -11,7 +11,13 @@ from driving_data_platform.common.config import ConfigError, external_path, load
 
 GIB = 1024**3
 MIB = 1024**2
-MEMORY_FIELDS = ("spark_mib", "postgres_mib", "api_mib", "host_reserve_mib")
+MEMORY_FIELDS = (
+    "spark_mib",
+    "postgres_mib",
+    "metastore_mib",
+    "api_mib",
+    "host_reserve_mib",
+)
 DISK_FIELDS = ("images", "warehouse", "databases", "temporary")
 
 
@@ -85,7 +91,7 @@ def inspect(config: dict, repository: Path) -> dict:
     vm_budget = (
         sum(
             positive(config["resources"], field)
-            for field in ("spark_mib", "postgres_mib")
+            for field in ("spark_mib", "postgres_mib", "metastore_mib")
         )
         * MIB
     )

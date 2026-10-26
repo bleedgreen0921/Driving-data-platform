@@ -10,7 +10,10 @@ from pathlib import Path
 from psycopg import sql
 
 from driving_data_platform.common.identity import canonical
+from driving_data_platform.ingestion.nuscenes import atomic_json
 from driving_data_platform.publishing.store import connect
+from driving_data_platform.warehouse.catalog import command as catalog_command
+from driving_data_platform.warehouse.catalog import job
 
 TABLES = {
     "control.active": "singleton,generation,revision",
@@ -90,8 +93,10 @@ def verify_backup(root: Path, repo: Path):
         restored = fingerprint(conn)
     if restored != expected:
         raise ValueError("独立库恢复后版本、指针或服务产物与源库不一致")
+    metastore = verify_metastore_backup(root, repo)
     result = {
         "status": "passed",
+        "metastore": metastore,
         "database": identity,
         "backup": str(destination),
         "tables": restored,
@@ -100,6 +105,134 @@ def verify_backup(root: Path, repo: Path):
     destination.with_suffix(".json").write_text(
         json.dumps(result, indent=2, ensure_ascii=False)
     )
+    return result
+
+
+def metastore_fingerprint(conn):
+    conn.execute("SET TIME ZONE 'UTC'")
+    tables = conn.execute(
+        "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename"
+    ).fetchall()
+    result = {}
+    for (name,) in tables:
+        rows = conn.execute(
+            sql.SQL("SELECT row_to_json(t)::text FROM public.{} t").format(
+                sql.Identifier(name)
+            )
+        ).fetchall()
+        encoded = sorted(row[0].encode() for row in rows)
+        result[name] = {
+            "count": len(rows),
+            "sha256": hashlib.sha256(b"\n".join(encoded)).hexdigest(),
+        }
+    return result
+
+
+def verify_metastore_backup(root: Path, repo: Path):
+    # 同时保留正常 HMS 与只读恢复验证 HMS，为 Docker VM 留至少 1 GiB。
+    memory = int(
+        subprocess.check_output(["docker", "info", "--format", "{{.MemTotal}}"])
+    )
+    if memory < int(7.5 * 1024**3):
+        raise ValueError("元数据恢复验证资源门禁不通过，需要 Docker VM 至少 7.5 GiB")
+    identity = "restore_hms_" + uuid.uuid4().hex
+    destination = root / "backups" / (identity + ".dump")
+    base = [*catalog_command(root, repo), "exec", "-T", "postgres"]
+    with connect(root, database="ddp_metastore_v410") as conn:
+        expected = metastore_fingerprint(conn)
+    with destination.open("wb") as stream:
+        subprocess.run(
+            [*base, "pg_dump", "-U", "ddp", "-d", "ddp_metastore_v410", "-Fc"],
+            stdout=stream,
+            check=True,
+        )
+    with connect(root) as conn:
+        conn.autocommit = True
+        conn.execute(
+            sql.SQL("CREATE DATABASE {} OWNER ddp_metastore").format(
+                sql.Identifier(identity)
+            )
+        )
+    with destination.open("rb") as stream:
+        subprocess.run(
+            [
+                *base,
+                "pg_restore",
+                "-U",
+                "ddp",
+                "--role",
+                "ddp_metastore",
+                "--exit-on-error",
+                "--no-owner",
+                "--no-acl",
+                "-d",
+                identity,
+            ],
+            stdin=stream,
+            check=True,
+        )
+    with connect(root, database=identity) as conn:
+        actual = metastore_fingerprint(conn)
+    if actual != expected:
+        raise ValueError("元数据库恢复后的全表指纹不一致")
+    with connect(root) as conn:
+        reference_generation, manifest = conn.execute(
+            "SELECT generation,manifest FROM control.generation WHERE generation=(SELECT generation FROM control.active)"
+        ).fetchone()
+        if not isinstance(manifest.get("catalog_contract"), dict):
+            # 旧 JSON 版本仍可回滚；元数据库恢复验证使用已完成的正式目录版本。
+            reference = conn.execute(
+                "SELECT generation,manifest FROM control.generation WHERE status='READY' AND jsonb_typeof(manifest->'catalog_contract')='object' ORDER BY created_at DESC LIMIT 1"
+            ).fetchone()
+            if reference is None:
+                raise ValueError("没有可用于元数据恢复验证的正式目录版本")
+            reference_generation, manifest = reference
+    catalog_id = manifest["catalog"]["database"].removeprefix("ddp_hms_")
+    request = json.loads(
+        (root / "metastore/generations" / catalog_id / "request.json").read_text()
+    )
+    trial = root / "metastore/trials" / uuid.uuid4().hex
+    trial.mkdir()
+    atomic_json(
+        trial / "request.json", request | {"uri": "thrift://metastore-restore:9083"}
+    )
+    env = dict(os.environ, DDP_HMS_RESTORE_DATABASE=identity)
+    command = catalog_command(root, repo)
+    log = destination.with_suffix(".log")
+    with log.open("w") as output:
+        try:
+            subprocess.run(
+                [*command, "up", "-d", "--wait", "--no-deps", "metastore-restore"],
+                env=env,
+                stdout=output,
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
+            job(root, repo, trial, "check")
+        finally:
+            subprocess.run(
+                [*command, "stop", "metastore-restore"],
+                env=env,
+                stdout=output,
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
+            subprocess.run(
+                [*command, "rm", "-f", "metastore-restore"],
+                env=env,
+                stdout=output,
+                stderr=subprocess.STDOUT,
+                check=True,
+            )
+    result = {
+        "database": identity,
+        "backup": str(destination),
+        "tables": actual,
+        "restored_hms_table_read": True,
+        "reference_generation": reference_generation,
+        "probe_directory": str(trial),
+    }
+    atomic_json(destination.with_suffix(".json"), result)
     return result
 
 

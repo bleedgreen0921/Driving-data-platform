@@ -1,0 +1,24 @@
+{
+  "hive": {
+    "tag": "apache/hive:4.1.0",
+    "image": "apache/hive@sha256:b957bb0e698e560d24e162b7549d79f191d58703e92899a886618c317f6e8f30",
+    "size_bytes": 4033222651,
+    "architecture": "arm64",
+    "source": "https://hub.docker.com/r/apache/hive",
+    "license": "Apache-2.0"
+  },
+  "spark_client": {
+    "tag": "driving-data-platform/hms-spark:4.2.0-hive4.1.0",
+    "image": "sha256:6b54f05742ad97d30c1c16933e3edb7b729b7dd3cdff555cf238916dcec4e74e",
+    "size_bytes": 3047738707,
+    "architecture": "arm64",
+    "dockerfile_sha256": "aa822b37e0e7159aaf2e619745af4e2a485d41b063e0327d0c1378c63e878278"
+  },
+  "jdbc": {
+    "version": "42.7.8",
+    "url": "https://repo.maven.apache.org/maven2/org/postgresql/postgresql/42.7.8/postgresql-42.7.8.jar",
+    "sha256": "2a32a9dcbc42d67a50ad3a0de5efd102c8d2be46720045f2cbd6689f160ab7c7",
+    "license": "BSD-2-Clause"
+  },
+  "prepared_at": "2026-10-26T03:16:59.894896+00:00"
+}

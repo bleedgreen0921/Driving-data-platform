@@ -1,0 +1,57 @@
+services:
+  metastore:
+    image: ${DDP_HMS_IMAGE:?prepare metastore first}
+    user: '0:0'
+    entrypoint: [/bin/bash, /app/start.sh]
+    environment:
+      DDP_HMS_PASSWORD: ${DDP_HMS_PASSWORD:?required}
+      DDP_HMS_DATABASE: ${DDP_HMS_DATABASE:-ddp_metastore_v410}
+    volumes:
+      - ../metastore/start.sh:/app/start.sh:ro
+      - ${DDP_OUTPUT_ROOT}/metastore/dependencies/postgresql.jar:/opt/hive/lib/postgresql.jar:ro
+      - ${DDP_OUTPUT_ROOT}/warehouse:/warehouse:ro
+      - metastore-catalog:/catalog
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 1536m
+    cpus: 1
+    healthcheck:
+      test: [CMD, /bin/bash, -c, 'exec 3<>/dev/tcp/127.0.0.1/9083']
+      interval: 3s
+      timeout: 2s
+      retries: 30
+      start_period: 15s
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+  metastore-restore:
+    extends:
+      service: metastore
+    profiles: [verification]
+    environment:
+      DDP_HMS_DATABASE: ${DDP_HMS_RESTORE_DATABASE:-unused_restore_database}
+      DDP_HMS_HEAP_MIB: '512'
+    mem_limit: 1g
+  spark-catalog:
+    image: ${DDP_HMS_SPARK_IMAGE:?prepare metastore first}
+    profiles: [batch]
+    user: '0:0'
+    hostname: ddp-spark-catalog
+    extra_hosts: ['ddp-spark-catalog:127.0.0.1']
+    environment:
+      SPARK_LOCAL_IP: 127.0.0.1
+      PYTHONPATH: /app/src
+    volumes:
+      - ${DDP_OUTPUT_ROOT}/warehouse:/warehouse:ro
+      - ${DDP_OUTPUT_ROOT}/metastore/trials:/exchange/trials
+      - ${DDP_OUTPUT_ROOT}/metastore/generations:/exchange/generations
+      - metastore-catalog:/catalog
+      - ../../src:/app/src:ro
+    mem_limit: 3g
+    cpus: 2
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+volumes:
+  metastore-catalog:

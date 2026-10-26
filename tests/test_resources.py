@@ -15,14 +15,14 @@ def budget():
 
 
 def test_exact_boundary(budget):
-    report = evaluate(budget, 13421772800, 36 * GIB, 36 * GIB)
+    report = evaluate(budget, 15032385536, 36 * GIB, 36 * GIB)
     assert report["status"] == "passed"
     assert not any(report["shortfall_bytes"].values())
 
 
 @pytest.mark.parametrize("resource", ["memory", "root_disk", "target_disk"])
 def test_shortfall_is_not_hidden(budget, resource):
-    capacities = {"memory": 13421772800, "root_disk": 36 * GIB, "target_disk": 36 * GIB}
+    capacities = {"memory": 15032385536, "root_disk": 36 * GIB, "target_disk": 36 * GIB}
     capacities[resource] -= 1
     report = evaluate(budget, *capacities.values())
     assert report["status"] == "blocked"

@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -40,3 +41,44 @@ def test_prepare_rejects_symbolic_output(tmp_path):
     )
     assert result.returncode == 2
     assert not list(target.iterdir())
+
+
+def test_catalog_consume_rejects_path_as_trial(tmp_path):
+    environment = dict(os.environ, DDP_OUTPUT_ROOT=str(tmp_path / "artifacts"))
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/manage_platform.py",
+            "hms-consume",
+            "--trial",
+            "../outside",
+        ],
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 2
+    assert "32 位试验 ID" in result.stdout
+    assert not (tmp_path / "outside").exists()
+
+
+def test_direct_integration_cannot_bypass_serial_lock(tmp_path):
+    import fcntl
+
+    root = tmp_path / "artifacts"
+    root.mkdir()
+    environment = dict(os.environ, DDP_OUTPUT_ROOT=str(root))
+    environment.pop("DDP_OPERATION_LOCK_FD", None)
+    with (root / ".operation.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        result = subprocess.run(
+            [sys.executable, "scripts/verify_integration.py", "--duration", "20"],
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    assert result.returncode == 2
+    assert "串行验证锁" in json.loads(result.stdout)["error"]
+    assert not (root / "reports").exists()

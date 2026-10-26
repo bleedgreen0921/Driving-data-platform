@@ -9,8 +9,9 @@ from pathlib import Path
 
 import psycopg
 
-from driving_data_platform.publishing.store import active, connect, load, publish
+from driving_data_platform.publishing.store import active, connect, publish
 from driving_data_platform.warehouse.build import build
+from driving_data_platform.warehouse.catalog import materialize
 
 
 def main():
@@ -26,7 +27,8 @@ def main():
     snapshot = json.loads((root / "ingestion/watermark.json").read_text())[
         "snapshot_id"
     ]
-    first = load(root, root / "warehouse" / (snapshot + "-warehouse-v2"))
+    repo = Path(__file__).resolve().parents[1]
+    first = materialize(root, repo, root / "warehouse" / (snapshot + "-warehouse-v3"))
     with connect(root) as conn:
         pointer = active(conn)
     original_pointer = pointer
@@ -40,7 +42,7 @@ def main():
         existing = conn.execute("SELECT count(*) FROM control.generation").fetchone()[0]
     if args.faults:
         try:
-            load(root, target, fail=True)
+            materialize(root, repo, target, load_fail=True)
         except ValueError as error:
             if str(error) != "fault: load-after-frame":
                 raise
@@ -53,8 +55,8 @@ def main():
                 != existing
             ):
                 raise ValueError("装载失败改变了活动版本或留下半成品")
-    second = load(root, target, fail_after_commit=args.faults)
-    if not load(root, target)["reused"]:
+    second = materialize(root, repo, target, ack_fail=args.faults)
+    if not materialize(root, repo, target)["reused"]:
         raise ValueError("重跑未复用")
 
     def compete(_):

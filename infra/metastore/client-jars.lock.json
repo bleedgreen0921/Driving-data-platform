@@ -1,0 +1,1362 @@
+{
+  "source_image": "apache/hive@sha256:b957bb0e698e560d24e162b7549d79f191d58703e92899a886618c317f6e8f30",
+  "license_basis": "\u539f\u59cb JAR \u5185 META-INF LICENSE/NOTICE \u53ca Hive \u5206\u53d1\u5305 LICENSE/NOTICE",
+  "jars": [
+    {
+      "file": "/opt/ddp/hive-client/HikariCP-4.0.3.jar",
+      "sha256": "7c024aeff1c1063576d74453513f9de6447d8e624d17f8e27f30a2e97688c6c9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/RoaringBitmap-1.2.1.jar",
+      "sha256": "44cab754bf9b4a8a13a7d103c2762e70fc191602a006fe540257b4a50845db7e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/ST4-4.0.4.jar",
+      "sha256": "17cc49dc535a0fbe58c3a8634e774572bed31eb73415e9ce9d2703b977bf356f"
+    },
+    {
+      "file": "/opt/ddp/hive-client/accessors-smart-2.5.0.jar",
+      "sha256": "12314fc6881d66a413fd66370787adba16e504fbf7e138690b0f3952e3fbd321"
+    },
+    {
+      "file": "/opt/ddp/hive-client/accumulo-core-1.10.4.jar",
+      "sha256": "721391e591be4bbce4e532241eaeaca1936729d274b8fbb6de10eb1c3bad556c"
+    },
+    {
+      "file": "/opt/ddp/hive-client/accumulo-fate-1.10.4.jar",
+      "sha256": "aba32be5c0a6079936328ce1f1cdd2d9dc4774a4e08ae89fabb1080c90cad2eb"
+    },
+    {
+      "file": "/opt/ddp/hive-client/accumulo-start-1.10.4.jar",
+      "sha256": "2d9a9803c61f78020827888f3d2f4123bae67720d2650e22e4c58361c6b9c8ee"
+    },
+    {
+      "file": "/opt/ddp/hive-client/accumulo-trace-1.10.4.jar",
+      "sha256": "c1a950396f558bcfa9259c491b21a6b23ca4935fcb57c56989cc1bdb7d4532bf"
+    },
+    {
+      "file": "/opt/ddp/hive-client/aircompressor-2.0.2.jar",
+      "sha256": "0c2a96bf86d5fb24ff7f20c92483c61391cb10d440a4bd278c77365a2b165698"
+    },
+    {
+      "file": "/opt/ddp/hive-client/animal-sniffer-annotations-1.14.jar",
+      "sha256": "2068320bd6bad744c3673ab048f67e30bef8f518996fa380033556600669905d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/annotations-17.0.0.jar",
+      "sha256": "195fb0da046d55bb042e91543484cf1da68b02bb7afbfe031f229e45ac84b3f2"
+    },
+    {
+      "file": "/opt/ddp/hive-client/annotations-4.1.1.4.jar",
+      "sha256": "ba734e1e84c09d615af6a09d33034b4f0442f8772dec120efb376d86a565ae15"
+    },
+    {
+      "file": "/opt/ddp/hive-client/ant-1.10.13.jar",
+      "sha256": "befbfc79e744e9892cfa7db96df3b6e82dc17d2571af42aa427976fc22299838"
+    },
+    {
+      "file": "/opt/ddp/hive-client/ant-launcher-1.10.13.jar",
+      "sha256": "cd7695b3bfb6964ab71b6a0b31dad60005ae77fe502132364679aacf08f77970"
+    },
+    {
+      "file": "/opt/ddp/hive-client/antlr-runtime-3.5.2.jar",
+      "sha256": "ce3fc8ecb10f39e9a3cddcbb2ce350d272d9cd3d0b1e18e6fe73c3b9389c8734"
+    },
+    {
+      "file": "/opt/ddp/hive-client/antlr4-runtime-4.9.3.jar",
+      "sha256": "131a6594969bc4f321d652ea2a33bc0e378ca312685ef87791b2c60b29d01ea5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/apache-el-8.5.100.jar",
+      "sha256": "d8c308da48c0229ab71905fba410fee44c73a4650a27ef7cece072e925ce9242"
+    },
+    {
+      "file": "/opt/ddp/hive-client/apache-jsp-8.5.100.jar",
+      "sha256": "69d4d9a1a5da72bdcdb34f08e797a9c11715c00f282e94b0fd868f6b99022a1e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/apache-jsp-9.4.57.v20241219.jar",
+      "sha256": "2e33fab37f5adcf6b71fa4b923ea10b9648fc2ba5b248f2a8890548f1cdaa544"
+    },
+    {
+      "file": "/opt/ddp/hive-client/apiguardian-api-1.1.2.jar",
+      "sha256": "b509448ac506d607319f182537f0b35d71007582ec741832a1f111e5b5b70b38"
+    },
+    {
+      "file": "/opt/ddp/hive-client/asm-3.3.1.jar",
+      "sha256": "c2b39275f8e951bc74750080a1266cdabc39399bc5e13d642bf2d346449df7f3"
+    },
+    {
+      "file": "/opt/ddp/hive-client/asm-9.7.1.jar",
+      "sha256": "8cadd43ac5eb6d09de05faecca38b917a040bb9139c7edeb4cc81c740b713281"
+    },
+    {
+      "file": "/opt/ddp/hive-client/asm-commons-9.7.1.jar",
+      "sha256": "9a579b54d292ad9be171d4313fd4739c635592c2b5ac3a459bbd1049cddec6a0"
+    },
+    {
+      "file": "/opt/ddp/hive-client/asm-tree-9.7.1.jar",
+      "sha256": "9929881f59eb6b840e86d54570c77b59ce721d104e6dfd7a40978991c2d3b41f"
+    },
+    {
+      "file": "/opt/ddp/hive-client/async-1.4.1.jar",
+      "sha256": "118bce251e41b829459eb5a14124bd9edbc42ff554514c048395cc3c6830c73a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/atlas-client-common-2.4.0.jar",
+      "sha256": "ba12240bd174ee5d347e693e2bf2fbe7b36d489a5422c25373f04187540f37fa"
+    },
+    {
+      "file": "/opt/ddp/hive-client/atlas-client-v2-2.4.0.jar",
+      "sha256": "97324bcf2479ee5e20768b1308fac68ac0ef0a7bb270e8fe2b3c491215fbc085"
+    },
+    {
+      "file": "/opt/ddp/hive-client/atlas-intg-2.4.0.jar",
+      "sha256": "2537a2162ed682b38f2237f078bbd94e07a98b8e66cc319c81a6af0b012e37b6"
+    },
+    {
+      "file": "/opt/ddp/hive-client/audience-annotations-0.12.0.jar",
+      "sha256": "ffb101fc066360ff3c77457c927fd7967fb096a6ee9e046ab7071447d8208efc"
+    },
+    {
+      "file": "/opt/ddp/hive-client/avatica-1.23.0.jar",
+      "sha256": "703d20881f3cf957a16055bea056e2857337a9950f456080b614344e3f3be27b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/avro-1.12.0.jar",
+      "sha256": "1f5fbfff9b7427d6832cc3031a3c81413d3e21d9e2551847d9231c28493f9492"
+    },
+    {
+      "file": "/opt/ddp/hive-client/avro-ipc-1.12.0.jar",
+      "sha256": "009b533e854f7b25ef8eddf8afd7f84a2149749542c8e2f03cb36205343ffced"
+    },
+    {
+      "file": "/opt/ddp/hive-client/avro-ipc-jetty-1.12.0.jar",
+      "sha256": "5e98dacfb0908e66cde02199881fbe7b101e4cf8bb810e1b0071fd3fa25fd7bf"
+    },
+    {
+      "file": "/opt/ddp/hive-client/avro-mapred-1.12.0.jar",
+      "sha256": "cbd650f5264ed138c170a049fd7b98dced90f66e39788ad1be7269a18778d972"
+    },
+    {
+      "file": "/opt/ddp/hive-client/aws-secretsmanager-caching-java-1.0.1.jar",
+      "sha256": "008675f5cedb8911c7801968db23697278b3bded8630da3c5668f108c4e088c5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/bcprov-jdk18on-1.78.jar",
+      "sha256": "1bf721b09758b3f55f2a5c875b6178ec6c41dddad854b0dead4b27a236f1943a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/brotli4j-1.18.0.jar",
+      "sha256": "0cab5c97314362a1d0d59206eb79ace72363ceac029f5e932acec6ce6bb23db8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/byte-buddy-1.15.11.jar",
+      "sha256": "fa08998aae1e7bdae83bde0712c50e8444d71c0e0c196bb2247ade8d4ad0eb90"
+    },
+    {
+      "file": "/opt/ddp/hive-client/byte-buddy-agent-1.15.11.jar",
+      "sha256": "316d2c0795c2a4d4c4756f2e6f9349837c7430ac34e0477ead874d05f5cc19e5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/caffeine-2.8.4.jar",
+      "sha256": "295f583798108fa6f9d3b5490292693c5e4f902a27d0366a022d13ecb9f495a8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/cglib-2.2.2.jar",
+      "sha256": "a93e4485d274277177480c4afe6ddd8355cda1cacfe356c134e25d65193935fd"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-beanutils-1.9.4.jar",
+      "sha256": "7d938c81789028045c08c065e94be75fc280527620d5bd62b519d5838532368a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-cli-1.5.0.jar",
+      "sha256": "bc8bb01fc0fad250385706e20f927ddcff6173f6339b387dc879237752567ac6"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-codec-1.15.jar",
+      "sha256": "b3e9f6d63a790109bf0d056611fbed1cf69055826defeb9894a71369d246ed63"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-collections-3.2.2.jar",
+      "sha256": "eeeae917917144a68a741d4c0dff66aa5c5c5fd85593ff217bced3fc8ca783b8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-collections4-4.1.jar",
+      "sha256": "b1fe8b5968b57d8465425357ed2d9dc695504518bed2df5b565c4b8e68c1c8a5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-compiler-3.1.12.jar",
+      "sha256": "17ea25d860225f4b59d0a512b4995f2e4711bdae5e15736cbcd5f6ce4dda8f7c"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-compress-1.26.0.jar",
+      "sha256": "051aceb8bbcc62d0f5b2b8ac72c53767f9c59bfbd050151e65bef6f51c8ed9c9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-configuration2-2.10.1.jar",
+      "sha256": "d5642131fbd7d85e9a4b824c52711528a1dde0a7866dfbd22a8711dbabd9eabc"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-dbcp2-2.12.0.jar",
+      "sha256": "9b81ea663b9db255bcec6b08a9245edd05bddb155c49343eef09b6d81558ed3e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-digester-1.8.1.jar",
+      "sha256": "b97b72b4201137262215dca60ceb84e6b664bf7fe428a4d62729de0239cafdb6"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-io-2.16.1.jar",
+      "sha256": "f41f7baacd716896447ace9758621f62c1c6b0a91d89acee488da26fc477c84f"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-jexl3-3.3.jar",
+      "sha256": "07b0ff6c5a10ffb2e2c02da9e2c0e2e6702df44178cfb76881f69447fc386014"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-lang-2.6.jar",
+      "sha256": "50f11b09f877c294d56f24463f47d28f929cf5044f648661c0f0cfbae9a2f49c"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-lang3-3.12.0.jar",
+      "sha256": "d919d904486c037f8d193412da0c92e22a9fa24230b9d67a57855c5c31c7e94e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-logging-1.1.3.jar",
+      "sha256": "70903f6fc82e9908c8da9f20443f61d90f0870a312642991fe8462a0b9391784"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-math3-3.6.1.jar",
+      "sha256": "1e56d7b058d28b65abd256b8458e3885b674c1d588fa43cd7d1cbb9c7ef2b308"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-pool2-2.12.0.jar",
+      "sha256": "6d3bd18df8410f3e31b031aca582cc109342358a62a2759ebd0c4cdf30d06f8b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-text-1.10.0.jar",
+      "sha256": "770cd903fa7b604d1f7ef7ba17f84108667294b2b478be8ed1af3bffb4ae0018"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-validator-1.6.jar",
+      "sha256": "bd62795d7068a69cbea333f6dbf9c9c1a6ad7521443fb57202a44874f240ba25"
+    },
+    {
+      "file": "/opt/ddp/hive-client/commons-vfs2-2.3.jar",
+      "sha256": "56d1ee93fa62ed5273b14403c19c00955eef3792605307e4b106b41ae5d83a66"
+    },
+    {
+      "file": "/opt/ddp/hive-client/cron-utils-9.2.1.jar",
+      "sha256": "02af0e8b2fe93c9fa6eecf97b53b39faae14c5b996356edb132e9fe620013744"
+    },
+    {
+      "file": "/opt/ddp/hive-client/cryptacular-1.2.4.jar",
+      "sha256": "97feff80494a54f1b5001f6f4bbdbd45cb64ccbb2dffeb679da9da9be0434b07"
+    },
+    {
+      "file": "/opt/ddp/hive-client/curator-client-5.7.1.jar",
+      "sha256": "611f7553fe7ed06713edcaae0098914a557cbb9724690c98137d05f1011fd3e9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/curator-framework-5.7.1.jar",
+      "sha256": "4f6219d50789db25a78184beb664e11ec63583125692b99faab538f8dae74b87"
+    },
+    {
+      "file": "/opt/ddp/hive-client/curator-recipes-5.7.1.jar",
+      "sha256": "8d0cb2638483fc1909e1f60cc66219598477ffcf0434bccfcd4ed65c25395ef7"
+    },
+    {
+      "file": "/opt/ddp/hive-client/datanucleus-api-jdo-6.0.3.jar",
+      "sha256": "a35f8de2f1dfeafb5eeb9205926825038d5a8f61e62a45741d4abcf8ba319c3b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/datanucleus-core-6.0.10.jar",
+      "sha256": "32e397a5ac0567ddb3806a560724c1e744d1f0485a8a2ee01b7bcc8323c131a0"
+    },
+    {
+      "file": "/opt/ddp/hive-client/datanucleus-rdbms-6.0.10.jar",
+      "sha256": "b3970a11dbd48679f47ba781d5e5c7b0a626a8bff469010ed49c533f39dd0ce3"
+    },
+    {
+      "file": "/opt/ddp/hive-client/datasketches-hive-2.0.0.jar",
+      "sha256": "f6444a2667703d91fb3ebfd3e78d255eb5a17f1383d4d106cae573b34acf571e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/datasketches-java-6.0.0.jar",
+      "sha256": "53fbd2f0702b74833ff688c18e4bf77bd68a7a8573d683139d2a63b4f86d4dc5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/datasketches-memory-2.2.0.jar",
+      "sha256": "0935461726f972866f9df68dc7344daff558e745d9db2207a3af89715c27961d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/derby-10.14.2.0.jar",
+      "sha256": "2c40eb581e5221ab33c7c796979b49ce404e7e393357c58f7bcdb30a09efca72"
+    },
+    {
+      "file": "/opt/ddp/hive-client/disruptor-3.3.7.jar",
+      "sha256": "d5135e76ee238c2f3a5da905115de15ca4c1f1338a3c8869d6947cf108acdb9c"
+    },
+    {
+      "file": "/opt/ddp/hive-client/dropwizard-metrics-hadoop-metrics2-reporter-0.1.2.jar",
+      "sha256": "a22d6889790fa98d5f85de6e25f7dc89946b26964742e6deb9f91681946fa03a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/ecj-3.26.0.jar",
+      "sha256": "ac0ba5876eaf7ebb47749a0d1be179c51f194b9dd0b875d1c09e1b530f5a2db5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/error_prone_annotations-2.0.18.jar",
+      "sha256": "cb4cfad870bf563a07199f3ebea5763f0dec440fcda0b318640b1feaa788656b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/esri-geometry-api-2.2.4.jar",
+      "sha256": "eb5e0c8395a9a27d5192b6c54bfbe04d8f4565de73794d997e1fc80ab493f90d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/flatbuffers-java-1.12.0.jar",
+      "sha256": "3f8c088b4dd04a9858721f2e162508c94db0dd86f961e306ee63ef2eda871bf7"
+    },
+    {
+      "file": "/opt/ddp/hive-client/glassfish-corba-omgapi-4.2.2.jar",
+      "sha256": "2d964250e13aa77b5e687669ef4981d44c7b92496b28e439e5fbcc5c7882e0f5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/graal-sdk-23.0.8.jar",
+      "sha256": "49d09e91690140934553ff66b0b57174ef4df51e378f53218c3554906596c78b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/groovy-all-2.4.21.jar",
+      "sha256": "de65260cf2070442e99882f2f3d72e7531725c1e6a257446cc0cea525c607bd0"
+    },
+    {
+      "file": "/opt/ddp/hive-client/grpc-api-1.72.0.jar",
+      "sha256": "f7ca643e2a8cab338b3c3c37305da4084d81d75b66a2016018c1c0ab97b655d4"
+    },
+    {
+      "file": "/opt/ddp/hive-client/grpc-context-1.72.0.jar",
+      "sha256": "43b58ec3cd95c16627f5846d1b934564b22a2715885d0ebcdbb071212213db22"
+    },
+    {
+      "file": "/opt/ddp/hive-client/grpc-core-1.72.0.jar",
+      "sha256": "da3cc600520ce757cd4d08e502348e65e0815574fbcdafa4ee1f7d3dd10e77c3"
+    },
+    {
+      "file": "/opt/ddp/hive-client/grpc-netty-shaded-1.72.0.jar",
+      "sha256": "701b372d92f8173899ae649674046346bdb24c721b10b603342cbe483cc948d6"
+    },
+    {
+      "file": "/opt/ddp/hive-client/grpc-protobuf-1.72.0.jar",
+      "sha256": "2c65feaebb9d74281ec78dcaa30ff222aff71fe2a27514426f078e10bb20bb14"
+    },
+    {
+      "file": "/opt/ddp/hive-client/grpc-protobuf-lite-1.72.0.jar",
+      "sha256": "7d942e864624783f27b8110d66e6812a9d43e65c63234de6edf937e959f243f8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/grpc-stub-1.72.0.jar",
+      "sha256": "851c7d3e6a42d0a662e78aecda4318fc347e12b1e85f67e78598c46c9bcb3dc8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/grpc-util-1.72.0.jar",
+      "sha256": "68a2f8162a3ff7e1235989e950d23bebbafba1cbd5771216992d6496f01fdcd5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/gson-2.9.0.jar",
+      "sha256": "c96d60551331a196dac54b745aa642cd078ef89b6f267146b705f2c2cbef052d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/guava-22.0.jar",
+      "sha256": "1158e94c7de4da480873f0b4ab4a1da14c0d23d4b1902cc94a58a6f0f9ab579e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-accumulo-handler-4.1.0.jar",
+      "sha256": "52fef7a79f1af175b7a686c9dc3b68b97feab9ac460a281a772c65bd97836c81"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-beeline-4.1.0.jar",
+      "sha256": "42079df7260bc0a0ac6ecf983987d83268d7bdce528cdc2d68409e4522dc12e6"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-classification-4.1.0.jar",
+      "sha256": "02952bcbca8d82599c7cba69d2f7b70f234d1468e2da6245cc57285c98c529ca"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-cli-4.1.0.jar",
+      "sha256": "ac9aa70f104a40de38325fa5235ef5025035354c10965fe4939da142db5978d8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-common-4.1.0.jar",
+      "sha256": "d38cb22a62af2ded4cc3851f4f4ad7f9ced42aace1b2d89b18a5d02b87d77e9b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-druid-handler-4.1.0.jar",
+      "sha256": "9ae42c3e8484fb175e940688223b6e8287ef4494cbc1c3fd2abbd6a957e88cd3"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-exec-4.1.0.jar",
+      "sha256": "7a9dccc57955312124b0430414a8bdcda1a59a5c8c5fd27b1d7b1c5988a6e1d2"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-hbase-handler-4.1.0.jar",
+      "sha256": "81f34c346e181e817d06fe2deb0145e3dd63cac680e33c8d8be2f0a7f402ae94"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-hcatalog-core-4.1.0.jar",
+      "sha256": "300fb3c09fcd882d93ad98f1845addd7c6f80aaa2a5a272eddcf36422ae5fb6d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-hcatalog-server-extensions-4.1.0.jar",
+      "sha256": "f6ff23be0d07d7f10d4efee39884e0f764d7fb27a68e30fa1d41c6cd19dc6a55"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-hplsql-4.1.0.jar",
+      "sha256": "d33fb3f386d19c43070b9576d065a9e16ae2df3b4ce9aa63db0088f403793bca"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-iceberg-catalog-4.1.0.jar",
+      "sha256": "2349fce7a713f1ed1c22a17026659108d2aefc2adc87e8050a914477885e90c2"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-iceberg-handler-4.1.0.jar",
+      "sha256": "3508190ddbb557ba94e2211f5a825369304d279ad124bd873ae6d4368c9be64b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-iceberg-shading-4.1.0.jar",
+      "sha256": "48f257f496fd485666bb2ee547b65c96d7e79b6734083ad20a895ba4a6086fb0"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-jdbc-4.1.0.jar",
+      "sha256": "0177c14906d4bf6359de0207b8b4a41a387f3a29b29160addfa1422f7d61df55"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-jdbc-handler-4.1.0.jar",
+      "sha256": "98158f37f05a3442bad536ac49560b4aaf70a00889496b694ee6e43e8552c830"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-kudu-handler-4.1.0.jar",
+      "sha256": "cd231de1bda4f8fbe07ba6b427b15b4506823aa39d4134b28adaf79c4c782f9f"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-llap-client-4.1.0.jar",
+      "sha256": "a940e8a84402e241172e0f3d135aa3e5391096075503ba541064122b2158de86"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-llap-common-4.1.0-tests.jar",
+      "sha256": "ba68ff867780b71d02d9b0dd55543056992cfb86405f1cbe7ff15ca9451fa511"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-llap-common-4.1.0.jar",
+      "sha256": "b1e03766584e356e53a9a771f5092f4c145a13d67ed10ac265ae1f4845123850"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-llap-ext-client-4.1.0.jar",
+      "sha256": "0f20bd2d03dd59f79d695d9f007acabfb631601a1b25602adcd3217f52504978"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-llap-server-4.1.0.jar",
+      "sha256": "c937aa6bb1da10e3dbec0c93bf8deb47a3d7e3caa614c1c7d64eae566b2a4fe9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-llap-tez-4.1.0.jar",
+      "sha256": "3b5ff891dd9280a83012295eb1ec36f0e2bb86bc9ebd4dc0495d5be86f6538f2"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-metastore-4.1.0.jar",
+      "sha256": "d3f662e6daec3c63097752dfa8c05c943ce04a17aaaf64f6370d4ef215c7ba92"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-parser-4.1.0.jar",
+      "sha256": "1e7c9b7342eeb15932b12a9678bf6d7a4d734d85f5ead62589768ae598e688a3"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-serde-4.1.0.jar",
+      "sha256": "6f5c1a84f7083f8fc7af5480462b4b2c8b9476c9a49040c6b70fd8390e5f836a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-service-4.1.0.jar",
+      "sha256": "972b911062111472b7a38a198e0bec2a1d6ac0cf534fa30464fc03e8abf76696"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-service-rpc-4.1.0.jar",
+      "sha256": "438ea555e74b09e6aed9cf9c41c25c2d632c34c6282fe770c6b040b7bf685652"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-shims-0.23-4.1.0.jar",
+      "sha256": "dd4878068e833eb1447f26c754823ce951f3eb7fa7347f17b1356e0471dedc13"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-shims-4.1.0.jar",
+      "sha256": "0ec0d6474dd78cbeb03898915b6685dcc9b7b30aa923600f791eeafd50bb3ff4"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-shims-common-4.1.0.jar",
+      "sha256": "09f03a037fbbdfaba41d23dd018f6d378274592cc167dc04c175d8f1f79cfc1d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-standalone-metastore-common-4.1.0.jar",
+      "sha256": "c9cd5020bc6a4212255489d5c6dff418b5cca422c997435a9baa5543eb1a25df"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-standalone-metastore-rest-catalog-4.1.0.jar",
+      "sha256": "2dbe76d0e43e63033d8e5bf0e2ed7dc72f06249495eaea982c6217bdd82d7bea"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-standalone-metastore-server-4.1.0.jar",
+      "sha256": "5cfcb4c598b1fff6076066108b6b0536b9a277fcaeda1ad957d3085c880f8d4b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-storage-api-4.1.0.jar",
+      "sha256": "49ccfde10a256222c4701213e1ceedfdb244081297f341a8c4a0cae8feac6083"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-streaming-4.1.0.jar",
+      "sha256": "a8e52765edfb35d99953694222b1386555bc11d8f766319ddc339e274c350bbb"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-testutils-4.1.0.jar",
+      "sha256": "bdad49fa0b00c5c2d1179dac1423386795a8db6a374570af426ac3d9852ec950"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-udf-4.1.0.jar",
+      "sha256": "95418d602f12adf80ab6707fa1adbe90dbb3bc49ba6fa488e2a9a4ce7a71f8fb"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hive-vector-code-gen-4.1.0.jar",
+      "sha256": "74179dfd6b3bbb11f237221f54588e7280fcf9067520ce8aad3bf6f3e1520bb1"
+    },
+    {
+      "file": "/opt/ddp/hive-client/hppc-0.7.2.jar",
+      "sha256": "7b3dd6661e83e313d70b4aa82c5180bb39535e536a3435fa741fff9727433b6a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/htrace-core-3.1.0-incubating.jar",
+      "sha256": "d96c869afaf65315ece8ca09673b187557e9dbaad31df24467a5aa759812188d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/httpclient-4.5.13.jar",
+      "sha256": "6fe9026a566c6a5001608cf3fc32196641f6c1e5e1986d1037ccdbd5f31ef743"
+    },
+    {
+      "file": "/opt/ddp/hive-client/httpcore-4.4.13.jar",
+      "sha256": "e06e89d40943245fcfa39ec537cdbfce3762aecde8f9c597780d2b00c2b43424"
+    },
+    {
+      "file": "/opt/ddp/hive-client/icu4j-72.1.jar",
+      "sha256": "3df572b240a68d13b5cd778ad2393e885d26411434cd8f098ac5987ea2e64ce3"
+    },
+    {
+      "file": "/opt/ddp/hive-client/ivy-2.5.2.jar",
+      "sha256": "98428d545ea63cd9a0aaf255caf42cb8cb64fe430dbb5e709aed536d4daeed04"
+    },
+    {
+      "file": "/opt/ddp/hive-client/j2objc-annotations-1.1.jar",
+      "sha256": "2994a7eb78f2710bd3d3bfb639b2c94e219cedac0d4d084d516e78c16dddecf6"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jackson-annotations-2.16.1.jar",
+      "sha256": "a4730771e6a495dd3793a42cdb8ce6bddb96c77e15f40c98fd8d9a7ae09e7286"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jackson-core-2.16.1.jar",
+      "sha256": "f5f8ef90609e64fec82eb908e497dc7d81b2eb983fe509b870292a193cde4dfb"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jackson-databind-2.16.1.jar",
+      "sha256": "baf8a8ebee8f45ef68cdd5e2dd3923b3e296c0937b96ec0b4806aa3a31bccd1d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jackson-dataformat-smile-2.16.1.jar",
+      "sha256": "3767744f2e37e6e672c3a98174e68567907d18ea5c451b203a19e7b0ad934354"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jackson-dataformat-yaml-2.16.1.jar",
+      "sha256": "fd67e0fafe368ad3dfc1b545eb8fe084a5c64628fb71ef70bd94a4dab27aefff"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jackson-jaxrs-base-2.16.1.jar",
+      "sha256": "7a2f636f64953910ff2b7331b4d5a46596fdc968d23893136f03c94a877fc390"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jackson-jaxrs-json-provider-2.16.1.jar",
+      "sha256": "d61a97ff0d527290e495f6565e1b8bce21e4359bfb475b4f1908c2e4f8701c31"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jakarta.transaction-api-1.3.3.jar",
+      "sha256": "0b02a194dd04ee2e192dc9da9579e10955dd6e8ac707adfc91d92f119b0e67ab"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jakarta.xml.bind-api-2.3.3.jar",
+      "sha256": "c04539f472e9a6dd0c7685ea82d677282269ab8e7baca2e14500e381e0c6cec5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jamon-runtime-2.4.1.jar",
+      "sha256": "0dc41d463124b3815d0ce2ce8064b00b2ed0237c187ab277e1052ec7c82ba28d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/janino-3.1.12.jar",
+      "sha256": "5699878c31e71c9a94cf472f95a2dad52ca7b0449c099276b8bd7e992a43595b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jansi-2.4.0.jar",
+      "sha256": "6cd91991323dd7b2fb28ca93d7ac12af5a86a2f53279e2b35827b30313fd0b9f"
+    },
+    {
+      "file": "/opt/ddp/hive-client/java-support-7.5.2.jar",
+      "sha256": "bc6a861d2447d3a67c81fdf61f0595d38c94ebbe4364bec6d59cb1b87cb2e8b2"
+    },
+    {
+      "file": "/opt/ddp/hive-client/javassist-3.28.0-GA.jar",
+      "sha256": "57d0a9e9286f82f4eaa851125186997f811befce0e2060ff0a15a77f5a9dd9a7"
+    },
+    {
+      "file": "/opt/ddp/hive-client/javax.activation-api-1.2.0.jar",
+      "sha256": "43fdef0b5b6ceb31b0424b208b930c74ab58fac2ceeb7b3f6fd3aeb8b5ca4393"
+    },
+    {
+      "file": "/opt/ddp/hive-client/javax.annotation-api-1.3.2.jar",
+      "sha256": "e04ba5195bcd555dc95650f7cc614d151e4bcd52d29a10b8aa2197f3ab89ab9b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/javax.inject-1.jar",
+      "sha256": "91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff"
+    },
+    {
+      "file": "/opt/ddp/hive-client/javax.jdo-3.2.0-release.jar",
+      "sha256": "408c8cf0800e2ee29722fbca2b776bf233b96ec3e816f7cd5845eba6d680fbf1"
+    },
+    {
+      "file": "/opt/ddp/hive-client/javax.json-api-1.0.jar",
+      "sha256": "1924ecfef6e9ba57c4425cf4b278192950037e5ca65d7d2d77e7d87ddaef8738"
+    },
+    {
+      "file": "/opt/ddp/hive-client/javax.servlet-api-3.1.0.jar",
+      "sha256": "af456b2dd41c4e82cf54f3e743bc678973d9fe35bd4d3071fa05c7e5333b8482"
+    },
+    {
+      "file": "/opt/ddp/hive-client/javax.transaction-api-1.3.jar",
+      "sha256": "603df5e4fc1eeae8f5e5d363a8be6c1fa47d0df1df8739a05cbcb9fafd6df2da"
+    },
+    {
+      "file": "/opt/ddp/hive-client/javax.ws.rs-api-2.0.1.jar",
+      "sha256": "38607d626f2288d8fbc1b1f8a62c369e63806d9a313ac7cbc5f9d6c94f4b466d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/javolution-5.5.1.jar",
+      "sha256": "6de167427fb5ad34fe533cb36a8b3427fa6052a2b99781874396ed5cca9f8ed1"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jaxb-api-2.3.1.jar",
+      "sha256": "88b955a0df57880a26a74708bc34f74dcaf8ebf4e78843a28b50eae945732b06"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jcip-annotations-1.0-1.jar",
+      "sha256": "4fccff8382aafc589962c4edb262f6aa595e34f1e11e61057d1c6a96e8fc7323"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jcommander-1.82.jar",
+      "sha256": "deeac157c8de6822878d85d0c7bc8467a19cc8484d37788f7804f039dde280b1"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jersey-multipart-1.19.4.jar",
+      "sha256": "f0ada237ad993ff5749abfff88dfa15c1f60bcb7e0522a1f17251cb670fcc448"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jettison-1.5.4.jar",
+      "sha256": "fc3a68a7c17688ee50817340fef265d8d3f6c192c92bbee00d17f18a6d3dfeda"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-annotations-9.4.57.v20241219.jar",
+      "sha256": "4a5898052d7e16df8a98d770645afb9fb6c3b2734d493b45acd818d4a26e79e2"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-http-9.4.57.v20241219.jar",
+      "sha256": "02c6514977f0051dfdecf8d0799acf7a88fd8008a5fd9320a92f2e5db45d297b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-io-9.4.57.v20241219.jar",
+      "sha256": "f6246a2cf0abcee7f0971217c0ce4cd30d8ce15a91530363457113907ab38690"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-jndi-9.4.57.v20241219.jar",
+      "sha256": "8a0a0d4325fe5a4d41f01439a9c8db539dee53692577b41f2e9d9d1c28b75a62"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-plus-9.4.57.v20241219.jar",
+      "sha256": "64bab9099acd2be213bf2ae47c4643ac4fa9912d584ff580e9631e50e886828e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-rewrite-9.4.57.v20241219.jar",
+      "sha256": "a67938868df997131ea979a103d7e99b8f5a61ceea938c4a20353ce6ea8ff2de"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-schemas-3.1.2.jar",
+      "sha256": "40e2ae14ab6329e8eb6e6e6ba72e3b7091c69e3d28ac5d60ac5a93eadb81c60a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-security-9.4.57.v20241219.jar",
+      "sha256": "af923d4f395a73bf8ddcb754f42d7617c6b7055e37e5a6b625ed894f73107ae9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-server-9.4.57.v20241219.jar",
+      "sha256": "ba957ae07da647023cfa52c923732aea1c67f5273a594cee1863365dfebb9a02"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-servlet-9.4.57.v20241219.jar",
+      "sha256": "c5e9517974dec9e4606b2d810f4995ea81091b1e24bd9640cb45d8b2aefd722c"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-util-9.4.57.v20241219.jar",
+      "sha256": "6ccbf678716778e316cc097d8aada4fe2a2e16c0bbfd8a1763204d6724b423f4"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-util-ajax-9.4.57.v20241219.jar",
+      "sha256": "67af50dd7714803b1bcdfabac181dd8b279d0ba6ba7fd27ea80c5b2099016542"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-webapp-9.4.57.v20241219.jar",
+      "sha256": "f2cef977201142d18ad40986b388623e4ca22b89f38b7208a36a6453f993e37c"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jetty-xml-9.4.57.v20241219.jar",
+      "sha256": "531320243d5ab3a90c1e0d254d1267b3ec1af6531b8b0a3cce4c21ddb2366f33"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jjwt-api-0.10.5.jar",
+      "sha256": "dc15294d0bee3f5d9c8ee8381dcdf37457f9c33604484b1d3a438478a05a05c5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jjwt-impl-0.10.5.jar",
+      "sha256": "78bc9d0033a16c1a46511dcf5a75f884ffe301bed89fe7124b478080e5d97c0a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jjwt-jackson-0.10.5.jar",
+      "sha256": "d2c03db8830c20384c6830b41d7547681bb65a5dcd23906d805bdd4f340edcde"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jline-2.14.6.jar",
+      "sha256": "97d1acaac82409be42e622d7a54d3ae9d08517e8aefdea3d2ba9791150c2f02d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jline-builtins-3.12.1.jar",
+      "sha256": "b02574afe530d698f2705b4dd8cc84ca09cab4db791e07fdf4c1621715a08d01"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jline-reader-3.12.1.jar",
+      "sha256": "4d1037c7110027ed64816c510fad2afa0a5aa9bbc38fb9f0e772870823fcad2a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jline-style-3.12.1.jar",
+      "sha256": "b294d2db3a0b3fad82bf43be4f99d0c29f74970a779a0a3470b22c50147ce3dd"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jline-terminal-3.12.1.jar",
+      "sha256": "eb6115680f732562f0e8e6777f127dece81e23b25015925f3c4a2a900d48cc9e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jline-terminal-jansi-3.12.1.jar",
+      "sha256": "5aefd139ebfd05fe7792bab8a0dc6d551d0e05ff0d6972d83fbdf4a4ad256cb3"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jline-terminal-jna-3.12.1.jar",
+      "sha256": "4fc674c339345d4ec2f6ce6d21e90724312d0a5835013ba9dd092c14440625ba"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jna-5.3.1.jar",
+      "sha256": "01cb505c0698d0f7acf3524c7e73acb7dc424a5bae5e9c86ce44075ab32bc4ee"
+    },
+    {
+      "file": "/opt/ddp/hive-client/joda-time-2.13.0.jar",
+      "sha256": "a9b450d96d90616f9fe5657a29385b4d0077f99f8bc80841f93e2545a3cd623e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jodd-util-6.0.0.jar",
+      "sha256": "0637812b5dc437762157a681b102ad45b4bc7f0d304736aa88459e0934b0d48a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jpam-1.1.jar",
+      "sha256": "3db38287ef038b01b7e73f2c62c3e7107af24a6b0cf95fda904b4330edcf8b28"
+    },
+    {
+      "file": "/opt/ddp/hive-client/js-23.0.8.jar",
+      "sha256": "83dca695ed11265c5df398209b42c55460a9bc3da76acd75cbb497e0e7d9b1c5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/js-scriptengine-23.0.8.jar",
+      "sha256": "3272df0216a7009c46e49a6c9e65ce38d6ddc523a79cdd9298165916d2330797"
+    },
+    {
+      "file": "/opt/ddp/hive-client/json-1.8.jar",
+      "sha256": "e0b487de3ccd3d1c288976677835e49880799c35507059039a18fa4ae1e7c59a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/json-path-2.9.0.jar",
+      "sha256": "11a9ee6f88bb31f1450108d1cf6441377dec84aca075eb6bb2343be157575bea"
+    },
+    {
+      "file": "/opt/ddp/hive-client/json-smart-2.5.0.jar",
+      "sha256": "432b9e545848c4141b80717b26e367f83bf33f19250a228ce75da6e967da2bc7"
+    },
+    {
+      "file": "/opt/ddp/hive-client/jsr305-3.0.0.jar",
+      "sha256": "bec0b24dcb23f9670172724826584802b80ae6cbdaba03bdebdef9327b962f6a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/junit-jupiter-api-5.11.2.jar",
+      "sha256": "0a68106f390138230c1639b87f1ff854c680113ba4876997cb0483f53457fb5c"
+    },
+    {
+      "file": "/opt/ddp/hive-client/junit-platform-commons-1.11.2.jar",
+      "sha256": "03ce3c6054c011a26953a065da6a48489d1fbc1995e4ca3c6d700293e71b5800"
+    },
+    {
+      "file": "/opt/ddp/hive-client/kafka-clients-2.5.0.jar",
+      "sha256": "881ec5434b11390edb7ec11bb5b3bb0d37efe4a03d874d9adc301650352b820a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/kafka-handler-4.1.0.jar",
+      "sha256": "8f4ff71d2944783f86b0e37523f8a56d9e4d72f4bee77afa9e103b86b35a13b1"
+    },
+    {
+      "file": "/opt/ddp/hive-client/kotlin-stdlib-1.8.21.jar",
+      "sha256": "042a1cd1ac976cdcfe5eb63f1d8e0b0b892c9248e15a69c8cfba495d546ea52a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/kotlin-stdlib-common-1.9.10.jar",
+      "sha256": "cde3341ba18a2ba262b0b7cf6c55b20c90e8d434e42c9a13e6a3f770db965a88"
+    },
+    {
+      "file": "/opt/ddp/hive-client/kotlin-stdlib-jdk7-1.8.21.jar",
+      "sha256": "33d148db0e11debd0d90677d28242bced907f9c77730000fd597867089039d86"
+    },
+    {
+      "file": "/opt/ddp/hive-client/kotlin-stdlib-jdk8-1.8.21.jar",
+      "sha256": "3db752a30074f06ee6c57984aa6f27da44f4d2bbc7f5442651f6988f1cb2b7d7"
+    },
+    {
+      "file": "/opt/ddp/hive-client/kryo5-5.5.0.jar",
+      "sha256": "5dab506f91ab06adad1acb5fe904e587c2781593a7930f003e84f6597622f3b2"
+    },
+    {
+      "file": "/opt/ddp/hive-client/kudu-client-1.17.0.jar",
+      "sha256": "7abb011dadb4d634774ac7524147e1399ce07c5a4633be57cd11506c44bc0a47"
+    },
+    {
+      "file": "/opt/ddp/hive-client/ldaptive-1.0.13.jar",
+      "sha256": "0a0310381a426a908f27eaca7741de79d5eaad69608de270440f4b3f6bc8557e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/libfb303-0.9.3.jar",
+      "sha256": "23fc397a42181b17bb7d0fada2213735ed8db38cfbf038d12b9c00ea7419e11b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/libthrift-0.16.0.jar",
+      "sha256": "b311ad08f7dc5ba90139910ec8619460914a4a2952f738603f1d7803ffdbe0a8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/log4j-1.2-api-2.24.3.jar",
+      "sha256": "d541ebd1316f53374991e836ad52f32c11bf465cb6672d397f0444814528ef8b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/log4j-api-2.24.3.jar",
+      "sha256": "5b4a0a0cd0e751ded431c162442bdbdd53328d1f8bb2bae5fc1bbeee0f66d80f"
+    },
+    {
+      "file": "/opt/ddp/hive-client/log4j-core-2.24.3.jar",
+      "sha256": "7eb4084596ae25bd3c61698e48e8d0ab65a9260758884ed5cbb9c6e55c44a56a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/log4j-slf4j-impl-2.24.3.jar",
+      "sha256": "40dec251164d1576e000968cd02e56a1125f46b91fb694a06dfa168f1335da48"
+    },
+    {
+      "file": "/opt/ddp/hive-client/log4j-web-2.24.3.jar",
+      "sha256": "7dec8dd19b05dbb9197d32bcfe7a98536ab56a482180c0de5001f312a146ae1b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/lz4-java-1.7.1.jar",
+      "sha256": "f1167a45d4b8002053670ef6991ca66d1bab9dcc03e4ef00183674d2f3fb9cac"
+    },
+    {
+      "file": "/opt/ddp/hive-client/metrics-core-3.1.0.jar",
+      "sha256": "d88845f17cd2c2d2203145e6f52e0c992cbe14d5887ddce97c9aceeae444b331"
+    },
+    {
+      "file": "/opt/ddp/hive-client/metrics-json-3.1.0.jar",
+      "sha256": "fa0b11982c8dc00b776905b5a8e74c2be12e34098abb85a8e6dd73675e5d784d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/metrics-jvm-3.1.0.jar",
+      "sha256": "5368b443636b199dad6ab60cfab97ab854f63678ccbf92cb22e5faeb355325d8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/mimepull-1.9.3.jar",
+      "sha256": "072eb5692f180ed0685705fb31c900eca0986b4523c23eefc0779e87d79eea35"
+    },
+    {
+      "file": "/opt/ddp/hive-client/mockito-core-5.17.0.jar",
+      "sha256": "dff59ad8c61b026ef86cc113f94f2301eb06caaf81dec30c78a96a1a65595c5e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/mockito-inline-5.2.0.jar",
+      "sha256": "ee52e1c299a632184fba274a9370993e09140429f5e516e6c5570fd6574b297f"
+    },
+    {
+      "file": "/opt/ddp/hive-client/native-linux-x86_64-1.18.0.jar",
+      "sha256": "00fe54d82e8d0341d5dc90ee543023191f4a3d4d6ecc089c071cded1681493b9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-3.10.5.Final.jar",
+      "sha256": "eb031acf8a00733481bcd60807925ecfc9ce3840f13823d4b96cdcb1132db1da"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-all-4.1.116.Final.jar",
+      "sha256": "230fdaa7d53002efb7dc08d4666a999b488858671eaa04357326b66e50b5c0e9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-buffer-4.1.116.Final.jar",
+      "sha256": "d4aabdb51bab5d1e9a83166615482ab391ad78506d69e91e37fe11a0ff8196fe"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-4.1.116.Final.jar",
+      "sha256": "484f618f007eae70ef81b1f763e2ede9ddeba531a70a4618b8599355cad23a40"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-dns-4.1.116.Final.jar",
+      "sha256": "02f39719d58bbb4b8be7743538f92a6c4f8b413eb05fbdf139e9dadba3b64b04"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-haproxy-4.1.116.Final.jar",
+      "sha256": "17e30c1d8b9e9cb503600b5e525352fb1376a43b30e2b4a166244170e0fbe86f"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-http-4.1.116.Final.jar",
+      "sha256": "f8f9972235333398e413425344eb8676ed2d40da3cfdd034ab02398339d88819"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-http2-4.1.116.Final.jar",
+      "sha256": "0b2ce8ba3172702ed92802b76b9f995f3b483b7032202d236a3bd83ba8575bb6"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-memcache-4.1.116.Final.jar",
+      "sha256": "c78eab285daec6840027290d2557b2f66c38a7371168898b1ab8005c5d2b0e5c"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-mqtt-4.1.116.Final.jar",
+      "sha256": "9de8c3e1030de1490f0efff81fb41607ab4308195266ae033498be08882c8ee8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-redis-4.1.116.Final.jar",
+      "sha256": "e2ed0719b94b6b77a612f071fe4070ab3a92c218e6924885f77fde0a871d3556"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-smtp-4.1.116.Final.jar",
+      "sha256": "5811d0cf05a9a8bfc869fa352e35f85ecadf5f55e6ec35ad280c4dc985215333"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-socks-4.1.116.Final.jar",
+      "sha256": "7e9ec84d61868e5d3ba4ca2b68698e005514a8b413849f5c9d9bc5d8ac5b3ecb"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-stomp-4.1.116.Final.jar",
+      "sha256": "7c47320716a135c62e7349f70d379dea1e335cfa19477544c0c6d53a9d1ec4c3"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-codec-xml-4.1.116.Final.jar",
+      "sha256": "f9992db21cabdfe4df3398ae75a45bb40090b894310038af42ef6f3dde7279a8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-common-4.1.116.Final.jar",
+      "sha256": "2145bcff843828e437e0c663739670f919fd7c24f3c02f260945435a887ca94b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-handler-4.1.105.Final.jar",
+      "sha256": "5a6945cf1de374628b37ab1c35a4c47c2f5616db3a94b150720641477112be8e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-handler-proxy-4.1.116.Final.jar",
+      "sha256": "86543ce2d84840c7648733648b461f0d072969fe0363df0e32c03b162cec716b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-handler-ssl-ocsp-4.1.116.Final.jar",
+      "sha256": "cc317d65aa75a1d038566cfdd82f39bac841f0b476db25deb2e73de39c2cbca9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-resolver-4.1.116.Final.jar",
+      "sha256": "cac96a9e1f4a1d9b5d7082ae408d0cc0a448412d7cd72565fc99e4ab3242da71"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-resolver-dns-4.1.116.Final.jar",
+      "sha256": "27c0ed4e90ecfb08cef8e6c9dcabcde9e0bb1f88cabaca1475ca269a23241233"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-resolver-dns-classes-macos-4.1.116.Final.jar",
+      "sha256": "8defcfbb31d8fc5cb816fb1bef7b5d02bb2196aa94a0f107bb5545205726ef71"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-resolver-dns-native-macos-4.1.116.Final-osx-aarch_64.jar",
+      "sha256": "a2e118e86570502d9ecc987ef2774d58658150631691aa90d78adf071561b8e2"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-resolver-dns-native-macos-4.1.116.Final-osx-x86_64.jar",
+      "sha256": "42a43ce2a856a5d92549d2db5f7b3ba5eacb87727ca62aa85fcf84dc7e7bd9eb"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-4.1.116.Final.jar",
+      "sha256": "6a9ee0f9eec8cdbfcb7be10538ee2aa72cbe9ad4377a800c2dcc1338495ce368"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-classes-epoll-4.1.116.Final.jar",
+      "sha256": "39ee30c01b49cd874af3b528101e51b4ae8181e4fcdf0714193425a36cfa1fe9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-classes-kqueue-4.1.116.Final.jar",
+      "sha256": "09c66ace1c045606645d13b7dab21562cef03ea1c30e6808a9ad96acbf337d44"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-native-epoll-4.1.105.Final.jar",
+      "sha256": "61f09ce16f0fd25e57a0a732f8fb79344f6b95051d88ac50a28874ad92e6d149"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-native-epoll-4.1.116.Final-linux-aarch_64.jar",
+      "sha256": "e163ac79417920244d0d9ca5228be83e85a0a6d4b3323b53fec36ac5c51210e6"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-native-epoll-4.1.116.Final-linux-riscv64.jar",
+      "sha256": "0791e462704d888711d014e694bff011962d12a944f084c1617479c5b5297a77"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-native-epoll-4.1.116.Final-linux-x86_64.jar",
+      "sha256": "268e60a82473a9d17ac48ba671286a01390f2b4e26138b7521287a90c5f71561"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-native-kqueue-4.1.116.Final-osx-aarch_64.jar",
+      "sha256": "5e6211fa45dbf243ccc8f243c28a8b8b34e25079ec8ad519fb1b8f0a25bb40d5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-native-kqueue-4.1.116.Final-osx-x86_64.jar",
+      "sha256": "b82f951af7b0fd6c5774b037efd46b552529a0748ced3c131767dc789b4bd460"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-native-unix-common-4.1.116.Final.jar",
+      "sha256": "f7861e0c54984c031a0fbde94c96e8ad1c9e79a17ab401b34583cab309444e52"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-rxtx-4.1.116.Final.jar",
+      "sha256": "af7d255e99c26a89543cb08f40068e1d5cc67e7b0b70b180202cea2d74fb45ae"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-sctp-4.1.116.Final.jar",
+      "sha256": "760e2f2a7bb1941d27069b04e27d8153aae276fedeadce53bea4b21647c36908"
+    },
+    {
+      "file": "/opt/ddp/hive-client/netty-transport-udt-4.1.116.Final.jar",
+      "sha256": "a8f0513dd17d12ce5919125f1ad9f12c4ba92822ee9b8693e6d0038416410fb4"
+    },
+    {
+      "file": "/opt/ddp/hive-client/nimbus-jose-jwt-9.37.3.jar",
+      "sha256": "12ae4a3a260095d7aeba2adea7ae396e8b9570db8b7b409e09a824c219cc0444"
+    },
+    {
+      "file": "/opt/ddp/hive-client/objenesis-3.3.jar",
+      "sha256": "02dfd0b0439a5591e35b708ed2f5474eb0948f53abf74637e959b8e4ef69bfeb"
+    },
+    {
+      "file": "/opt/ddp/hive-client/okhttp-4.12.0.jar",
+      "sha256": "b1050081b14bb7a3a7e55a4d3ef01b5dcfabc453b4573a4fc019767191d5f4e0"
+    },
+    {
+      "file": "/opt/ddp/hive-client/okio-3.6.0.jar",
+      "sha256": "8e63292e5c53bb93c4a6b0c213e79f15990fed250c1340f1c343880e1c9c39b5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/okio-jvm-3.6.0.jar",
+      "sha256": "67543f0736fc422ae927ed0e504b98bc5e269fda0d3500579337cb713da28412"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opencsv-5.9.jar",
+      "sha256": "2023969b86ce968ad8ae549648ac587d141c19ae684a9a5c67c9105f37ab0d1c"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-core-3.4.6.jar",
+      "sha256": "d9b867c9c2b6a44d75a95504a467d94b5183def09fa1f3f0f1a95a79621ec1e1"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-messaging-api-3.4.6.jar",
+      "sha256": "fcfd7450afafc8203fecbf1d8f1a7b0a8221c6199ea3c815e0ca65b9c7eec927"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-messaging-impl-3.4.6.jar",
+      "sha256": "cf2a2afc13f20ccc12f4ef5e8dd23a63ba814426db7495ca93e6ed38b7e2de10"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-profile-api-3.4.6.jar",
+      "sha256": "d4aa4269af0d25b7ed5740c46a9894123fc0501546891188678aa74df0f141ba"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-profile-impl-3.4.6.jar",
+      "sha256": "24d7bc98363e91b9dbf580ccfb2d829cf4ba968898b89949793e399288fd56bf"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-saml-api-3.4.6.jar",
+      "sha256": "a48e58ca9a98753aaa3f58b47ac6f941892b8980ff52381491b244ce02093fce"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-saml-impl-3.4.6.jar",
+      "sha256": "c9b818689fbcda211fcf4a4c970bfc143c5955645129df53b9bdca8f7f83c1b4"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-security-api-3.4.6.jar",
+      "sha256": "a84c4e51d8a90c30e70cfa37da22e4d18e54af747e2771fc4e39c6d8c76ae41a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-security-impl-3.4.6.jar",
+      "sha256": "78fa84dc93d47756a37bf7a3e5f443630981607f29a0a97ce5e78e8c4272655a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-soap-api-3.4.6.jar",
+      "sha256": "76cc47c3610e97df80921611aef80cbbc0f273dcd7323e6e08c70996d121254a"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-soap-impl-3.4.6.jar",
+      "sha256": "970335e5dfaa616c26d7dd094f866502e0b3bca6839ecf3ebeeb0dfe4653f1e6"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-storage-api-3.4.6.jar",
+      "sha256": "42b3f5d05e57841603fa2c1c5946234a6bba27bb2e6dea9996afa73dbb4572e1"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-storage-impl-3.4.6.jar",
+      "sha256": "22351c219fb9d21f509790641c662fbdefdb2b4bad93597154070b01bfe81a32"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-xmlsec-api-3.4.6.jar",
+      "sha256": "fb6234bab21f5582f021467a772bb9c4cfb32af8bc1900504811795992bb23fd"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opensaml-xmlsec-impl-3.4.6.jar",
+      "sha256": "8151f782375205f6698941fba656dec077f35e4a05e8a3a94e31b84cc7c912a7"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-api-1.42.0.jar",
+      "sha256": "34a565e3e273a2e99f05e1a0013eed4e6b427d12b281cbcec254c32a89b8a11c"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-api-incubator-1.42.0-alpha.jar",
+      "sha256": "c00eb8b853595b951eaf7b803c229833761e4469146d7bcc48b9682e6ab56469"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-context-1.42.0.jar",
+      "sha256": "c63c248790a34a8516b1414c0547501534244bbff95d3bd17b6dc9beda4916ab"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-exporter-common-1.42.0.jar",
+      "sha256": "049bf100e3c7a45b77123deb539fc4ac6ca0efe60d9578ab063c60a9a29e0c7e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-exporter-logging-1.42.0.jar",
+      "sha256": "d8f45d080ea87562631490df393a8bfe3e3c52a6bc9795fb1b3d9f19031d6710"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-exporter-otlp-1.42.0.jar",
+      "sha256": "ab613c6c4b2839e061df36c2963629c8621c64a080b2cd0ed8ad2635fe206041"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-exporter-otlp-common-1.42.0.jar",
+      "sha256": "311ac7cf619efbcf8eb6f8607b6049eda6f79e0218171031bf0c6e18d00cd5e4"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-exporter-sender-okhttp-1.42.0.jar",
+      "sha256": "8e35e5be3bee12567545e8bf58fc3d1afa5afe974666d36d569912b76e84ee43"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-sdk-1.42.0.jar",
+      "sha256": "b7933536adf516ac0ad672d9b03a53eb399b800ee7689336003835815b927953"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-sdk-common-1.42.0.jar",
+      "sha256": "8ee3d1c23fed35c3c7f86a07b05794c03e4a45f475beb0b3b4db718e71241cbb"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-sdk-extension-autoconfigure-1.42.0.jar",
+      "sha256": "b6e6b7d9a00b0c25cff52993e9892672f3fce2e2c5ea55cb4c9aca944531dd92"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-sdk-extension-autoconfigure-spi-1.42.0.jar",
+      "sha256": "5b47775da1a635f3d434238d7363545db32eca0dd7f645963b52be20edc246fc"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-sdk-logs-1.42.0.jar",
+      "sha256": "606af94b1b8804b0382fb80e3e06cff9d58d80ee61d99066c8098685db835eb7"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-sdk-metrics-1.42.0.jar",
+      "sha256": "68be9f25c6be56cc47cc525f4569e90e3ce2cd22996e5cd2d100e6e86005d188"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentelemetry-sdk-trace-1.42.0.jar",
+      "sha256": "70686b5ee21324cf666fea116a4090c8bc53170eb76c5f3de9823ad6cd2f29fa"
+    },
+    {
+      "file": "/opt/ddp/hive-client/opentest4j-1.3.0.jar",
+      "sha256": "48e2df636cab6563ced64dcdff8abb2355627cb236ef0bf37598682ddf742f1b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/orc-core-2.1.2.jar",
+      "sha256": "81354761e58c7347a8057bb5bf5250d570559f3a53967e3713f8396ff913715d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/orc-format-1.1.0.jar",
+      "sha256": "db817bcfec0a20d8740530c7211089f9f798c7ea53f80e8d873a32fd1b62d562"
+    },
+    {
+      "file": "/opt/ddp/hive-client/orc-shims-2.1.2.jar",
+      "sha256": "0792d09cbfb10cd4183bdd27c902b4db65a676d611311131670f936a1d5e85a2"
+    },
+    {
+      "file": "/opt/ddp/hive-client/orc-tools-2.1.2.jar",
+      "sha256": "27d2d6839f9010357e75c6d2ccf6a0dc0d5f279ae37c9e1305287e7b5c9296e3"
+    },
+    {
+      "file": "/opt/ddp/hive-client/pac4j-core-4.5.8.jar",
+      "sha256": "faed903df0864fab0a7c3b6f9ee6691cdfa5d8315c76b154510eab95b6f00b71"
+    },
+    {
+      "file": "/opt/ddp/hive-client/pac4j-saml-opensamlv3-4.5.8.jar",
+      "sha256": "7cefa7c15d92d4764d59b9671766137cd041cb1d658e557eba001dd71428557d"
+    },
+    {
+      "file": "/opt/ddp/hive-client/parquet-hadoop-bundle-1.15.2.jar",
+      "sha256": "220f830593084f7ee2d2b839beda501d20af551fd20cf368cda99fdc3d9431eb"
+    },
+    {
+      "file": "/opt/ddp/hive-client/perfmark-api-0.27.0.jar",
+      "sha256": "c7b478503ec524e55df19b424d46d27c8a68aeb801664fadd4f069b71f52d0f6"
+    },
+    {
+      "file": "/opt/ddp/hive-client/proto-google-common-protos-2.51.0.jar",
+      "sha256": "0b27938f3d28ccd6884945d7e4f75f4e26a677bbf3cd39bbcb694f130f782aa9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/protobuf-java-3.25.5.jar",
+      "sha256": "8540247fad9e06baefa8fb45eb313802d019f485f14300e0f9d6b556ed88e753"
+    },
+    {
+      "file": "/opt/ddp/hive-client/re2j-1.2.jar",
+      "sha256": "e9dc705fd4c570344b54a7146b2e3a819cdc271a29793f4acc1a93b56a388e59"
+    },
+    {
+      "file": "/opt/ddp/hive-client/reflections-0.10.2.jar",
+      "sha256": "938a2d08fe54050d7610b944d8ddc3a09355710d9e6be0aac838dbc04e9a2825"
+    },
+    {
+      "file": "/opt/ddp/hive-client/regex-23.0.8.jar",
+      "sha256": "ba60b0faedc3793af8576872ba34d30a8c1051c7f9fa7e27a36b4117d56f2aa3"
+    },
+    {
+      "file": "/opt/ddp/hive-client/service-1.18.0.jar",
+      "sha256": "6b27c85555992438530a88ae8192b15589fdc21ea22dc3c597393bf8f2dd8805"
+    },
+    {
+      "file": "/opt/ddp/hive-client/snakeyaml-2.2.jar",
+      "sha256": "1467931448a0817696ae2805b7b8b20bfb082652bf9c4efaed528930dc49389b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/snappy-java-1.1.10.4.jar",
+      "sha256": "55b30c94e5c4cc2d4b6976916098d0678a8a6cc7427fa8c875621bd94e731ac8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/spring-beans-5.3.39.jar",
+      "sha256": "b6697a5d8facb81aa75e5a46d959d4256da9ce3b40d33f3b5bbd42a8b1ed5722"
+    },
+    {
+      "file": "/opt/ddp/hive-client/spring-core-5.3.39.jar",
+      "sha256": "3a1ddcf05420a9181bd9cacb6062a3edc493e14d555961ad50e1a6360eb1e75f"
+    },
+    {
+      "file": "/opt/ddp/hive-client/spring-jcl-5.3.39.jar",
+      "sha256": "adbe656fc622e2457fefa09529d4b7c1126a3c4ff1c9306907764fcc93f1b725"
+    },
+    {
+      "file": "/opt/ddp/hive-client/spring-jdbc-5.3.39.jar",
+      "sha256": "f314077e4196a4199a1d7b252db644f39fa6541bb7dc6e92bbb9001d6714d7d9"
+    },
+    {
+      "file": "/opt/ddp/hive-client/spring-ldap-core-2.4.4.jar",
+      "sha256": "741e6bd6786bdfb49319e83a30d4bab842f70a6ef1d48081c04f02b4134aef1e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/spring-tx-5.3.39.jar",
+      "sha256": "defdd2e72eb88729e40bc6773c6860d3c52136c46861d27806379562ffc4b21b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/spymemcached-2.12.3.jar",
+      "sha256": "133092565f8308b9bcbfce83909d11f505d4094b856ead24e299ac93679bb4e2"
+    },
+    {
+      "file": "/opt/ddp/hive-client/sqlline-1.9.0.jar",
+      "sha256": "af19155ed4be6a8cd1cda92d28e85c28803f8af997fbf7fc47b9a96ec4e4990b"
+    },
+    {
+      "file": "/opt/ddp/hive-client/stax-api-1.0.1.jar",
+      "sha256": "d1968436fc216c901fb9b82c7e878b50fd1d30091676da95b2edd3a9c0ccf92e"
+    },
+    {
+      "file": "/opt/ddp/hive-client/super-csv-2.2.0.jar",
+      "sha256": "bf743e0c1f1c42d19df236d82fa0b34128cd5e82cde6e491e316ec274f94bfbe"
+    },
+    {
+      "file": "/opt/ddp/hive-client/tez-api-0.10.5.jar",
+      "sha256": "7dcd9d3583e088b218ccff73f3adeba913076a7952fd0f9907196cefee690ee8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/threeten-extra-1.8.0.jar",
+      "sha256": "51e4d21edc4e9447f7760c050e0baee75d7d973f387ba605a17abdc4d24fd6d8"
+    },
+    {
+      "file": "/opt/ddp/hive-client/truffle-api-23.0.8.jar",
+      "sha256": "0fa529c2a69f643cf6f3ebc88421b378235978f10de8faff5f70a6fcaddaabee"
+    },
+    {
+      "file": "/opt/ddp/hive-client/validation-api-1.1.0.Final.jar",
+      "sha256": "f39d7ba7253e35f5ac48081ec1bc28c5df9b32ac4b7db20853e5a8e76bf7b0ed"
+    },
+    {
+      "file": "/opt/ddp/hive-client/velocity-engine-core-2.3.jar",
+      "sha256": "b086cee8fd8183e240b4afcf54fe38ec33dd8eb0da414636e5bf7aa4d9856629"
+    },
+    {
+      "file": "/opt/ddp/hive-client/xmlsec-2.3.4.jar",
+      "sha256": "5513e7417edc1eb7188adc4de0312e93156bd7ca6d6c1e6072d3e0006defff23"
+    },
+    {
+      "file": "/opt/ddp/hive-client/xmlsectool-2.0.0.jar",
+      "sha256": "47f92f83257552bb65ea10150ed10b50ad1c1afb3461c94db62a9617f1a1eeba"
+    },
+    {
+      "file": "/opt/ddp/hive-client/xz-1.9.jar",
+      "sha256": "211b306cfc44f8f96df3a0a3ddaf75ba8c5289eed77d60d72f889bb855f535e5"
+    },
+    {
+      "file": "/opt/ddp/hive-client/zookeeper-3.8.4.jar",
+      "sha256": "2d77b152039e7f85dc5438a9304febff86a2f3e55c88976a8be309af39028e97"
+    },
+    {
+      "file": "/opt/ddp/hive-client/zookeeper-jute-3.8.4.jar",
+      "sha256": "93e854b55d731e745bafec187e2e7bf3389fd2a88e2fc8d1a3c1b9110284b284"
+    },
+    {
+      "file": "/opt/ddp/hive-client/zstd-jni-1.5.6-10.jar",
+      "sha256": "b6c3237e24b8252a5a9c3a0e1ae30ef8f323412e74bd358548b7a9e527d676df"
+    },
+    {
+      "file": "/opt/spark/jars/hadoop-client-api-3.5.0.jar",
+      "sha256": "cc59446ec9ebaceae56fdb8d8c21477766dc5d426325642151c796bec5c4e6b7"
+    },
+    {
+      "file": "/opt/spark/jars/hadoop-client-runtime-3.5.0.jar",
+      "sha256": "b7db3e60c5df1cd37c2995b3e0142e57487260706834e5325bbe0a5e683eedf1"
+    }
+  ]
+}

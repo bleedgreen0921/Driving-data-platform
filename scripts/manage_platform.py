@@ -4,6 +4,7 @@ import argparse
 import fcntl
 import json
 import os
+import re
 import subprocess
 import sys
 import uuid
@@ -28,6 +29,10 @@ ENV = ROOT / "compose.env"
 
 
 def compose(*args):
+    if ENV.exists() and (ROOT / "metastore/runtime.env").exists():
+        from driving_data_platform.warehouse.catalog import command
+
+        return subprocess.run([*command(ROOT, REPO), *args], check=True)
     return subprocess.run(
         [
             "docker",
@@ -147,7 +152,7 @@ def prepare_images():
     return {"status": "passed", "images": images}
 
 
-def verify(selected, faults=False):
+def verify(selected, faults=False, *, duration=1800, lock_fd=None):
     directory = (
         ROOT
         / "reports"
@@ -156,8 +161,23 @@ def verify(selected, faults=False):
     directory.mkdir(parents=True)
     results = []
     commands = {
+        "pipeline": [
+            sys.executable,
+            "scripts/verify_pipeline.py",
+            *(["--faults"] if faults else []),
+        ],
+        "metastore": [
+            sys.executable,
+            "scripts/verify_metastore.py",
+            *(["--faults"] if faults else []),
+        ],
         "backup": [sys.executable, "scripts/verify_backup.py"],
-        "integration": [sys.executable, "scripts/verify_integration.py"],
+        "integration": [
+            sys.executable,
+            "scripts/verify_integration.py",
+            "--duration",
+            str(duration),
+        ],
         "api": [
             sys.executable,
             "scripts/verify_api.py",
@@ -221,6 +241,15 @@ def verify(selected, faults=False):
                     cwd=REPO,
                     stdout=log,
                     stderr=subprocess.STDOUT,
+                    env=dict(
+                        os.environ,
+                        **(
+                            {"DDP_OPERATION_LOCK_FD": str(lock_fd)}
+                            if lock_fd is not None
+                            else {}
+                        ),
+                    ),
+                    pass_fds=(lock_fd,) if lock_fd is not None else (),
                 )
                 code = result.returncode
             except OSError:
@@ -251,8 +280,15 @@ def main():
         choices=[
             "prepare",
             "prepare-images",
+            "hms-register",
+            "hms-consume",
+            "hms-validate",
+            "hms-prepare",
+            "hms-up",
+            "hms-stop",
             "check",
             "up",
+            "postgres-up",
             "stop",
             "status",
             "verify",
@@ -272,6 +308,8 @@ def main():
         "checks",
         nargs="*",
         choices=[
+            "pipeline",
+            "metastore",
             "regression",
             "dependencies",
             "preflight",
@@ -286,8 +324,15 @@ def main():
             "api",
         ],
     )
+    parser.add_argument(
+        "--duration",
+        type=int,
+        default=1800,
+        help="integration 观测秒数，正式验收至少 1800",
+    )
+    parser.add_argument("--trial", help="Hive 候选消费的 32 位试验 ID")
     parser.add_argument("--generation")
-    parser.add_argument("--version", default="warehouse-v2")
+    parser.add_argument("--version", default="warehouse-v3")
     parser.add_argument(
         "--faults",
         action="store_true",
@@ -321,6 +366,57 @@ def main():
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             if args.command == "prepare":
                 report = prepare()
+            elif args.command in {"hms-register", "hms-consume"}:
+                from driving_data_platform.warehouse.catalog import (
+                    consume,
+                    new_trial,
+                    register,
+                )
+
+                if args.command == "hms-register":
+                    if args.trial:
+                        if not re.fullmatch("[0-9a-f]{32}", args.trial):
+                            raise ValueError("必须使用有效的 32 位试验 ID")
+                        trial = ROOT / "metastore/trials" / args.trial
+                    else:
+                        water = json.loads(
+                            (ROOT / "ingestion/watermark.json").read_text()
+                        )
+                        trial = new_trial(
+                            ROOT,
+                            ROOT
+                            / "warehouse"
+                            / (water["snapshot_id"] + "-" + args.version),
+                        )
+                    receipt = register(ROOT, REPO, trial)
+                    report = {
+                        "status": "passed",
+                        "trial": trial.name,
+                        "catalog": receipt,
+                    }
+                else:
+                    if not args.trial or not re.fullmatch("[0-9a-f]{32}", args.trial):
+                        raise ValueError("必须使用 --trial 指定有效的 32 位试验 ID")
+                    report = consume(ROOT, REPO, ROOT / "metastore/trials" / args.trial)
+            elif args.command.startswith("hms-"):
+                action = args.command.removeprefix("hms-")
+                log = (
+                    ROOT
+                    / "reports"
+                    / ("metastore-" + action + "-" + uuid.uuid4().hex + ".log")
+                )
+                with log.open("w") as output:
+                    result = subprocess.run(
+                        [sys.executable, "scripts/metastore.py", action],
+                        stdout=output,
+                        stderr=subprocess.STDOUT,
+                        check=False,
+                    )
+                report = {
+                    "status": "passed" if result.returncode == 0 else "blocked",
+                    "exit_code": result.returncode,
+                    "log": str(log),
+                }
             elif args.command == "prepare-images":
                 report = prepare_images()
             elif args.command == "check":
@@ -334,13 +430,14 @@ def main():
                 report = verify(
                     args.checks or ["dependencies", "regression", "preflight"],
                     args.faults,
+                    duration=args.duration,
+                    lock_fd=lock.fileno(),
                 )
             elif args.command in {"init-db", "load", "publish", "rollback"}:
                 from driving_data_platform.publishing.store import (
                     active,
                     connect,
                     initialize,
-                    load,
                     publish,
                 )
 
@@ -349,8 +446,11 @@ def main():
                     report = {"status": "passed"}
                 elif args.command == "load":
                     water = json.loads((ROOT / "ingestion/watermark.json").read_text())
-                    report = load(
+                    from driving_data_platform.warehouse.catalog import materialize
+
+                    report = materialize(
                         ROOT,
+                        REPO,
                         ROOT
                         / "warehouse"
                         / (water["snapshot_id"] + "-" + args.version),
@@ -371,30 +471,9 @@ def main():
 
                 report = usage(ROOT, REPO)
             elif args.command == "run":
-                from driving_data_platform.common.preflight import preflight
-                from driving_data_platform.publishing.store import (
-                    active,
-                    connect,
-                    load,
-                    publish,
-                )
-                from driving_data_platform.warehouse.build import build
+                from driving_data_platform.pipeline import run
 
-                config = load_config(CONFIG)
-                preflight(config, REPO)
-                ingested = ingest(config, REPO)
-                warehouse = build(ROOT, REPO, args.version)
-                loaded = load(ROOT, Path(warehouse["directory"]))
-                with connect(ROOT) as conn:
-                    pointer = active(conn)
-                published = publish(ROOT, loaded["generation"], pointer)
-                report = {
-                    "status": "passed",
-                    "ods": ingested,
-                    "warehouse": warehouse,
-                    "load": loaded,
-                    "publish": published,
-                }
+                report = run(ROOT, REPO, args.version)
             elif args.command in {"api-up", "api-stop"}:
                 from api_process import start, stop
 
@@ -406,7 +485,7 @@ def main():
             elif args.command == "ods":
                 report = ingest(load_config(CONFIG), REPO)
             else:
-                if args.command == "up":
+                if args.command in {"up", "postgres-up"}:
                     budget = load_config(REPO / "configs/platform.example.yaml")
                     budget["deployment"]["persistence_root"] = str(ROOT)
                     if inspect(budget, REPO)["status"] != "passed":
@@ -415,9 +494,32 @@ def main():
                     from api_process import stop
 
                     stop(ROOT)
+                if (
+                    args.command == "up"
+                    and not (ROOT / "metastore/runtime.env").exists()
+                ):
+                    raise ValueError(
+                        "请先执行 postgres-up、init-db、hms-prepare；启动不隐式准备依赖"
+                    )
                 compose(
                     *{
-                        "up": ["up", "-d", "--wait", "postgres"],
+                        "up": [
+                            "up",
+                            "-d",
+                            "--wait",
+                            "--pull",
+                            "never",
+                            "postgres",
+                            "metastore",
+                        ],
+                        "postgres-up": [
+                            "up",
+                            "-d",
+                            "--wait",
+                            "--pull",
+                            "never",
+                            "postgres",
+                        ],
                         "stop": ["stop"],
                         "status": ["ps"],
                     }[args.command]

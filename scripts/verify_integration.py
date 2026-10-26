@@ -19,12 +19,9 @@ from api_process import status as api_status
 from usage_report import usage
 from verify_backup import verify_backup
 
-from driving_data_platform.common.config import load_config
-from driving_data_platform.common.preflight import preflight
-from driving_data_platform.ingestion.nuscenes import ingest
-from driving_data_platform.publishing.store import active, connect, load, publish
+from driving_data_platform.pipeline import DEFAULT_VERSION, run
+from driving_data_platform.publishing.store import active, connect, publish
 from driving_data_platform.warehouse.baseline import baseline
-from driving_data_platform.warehouse.build import build
 
 
 def get(path):
@@ -32,18 +29,7 @@ def get(path):
         return json.load(response)
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--duration", type=int, default=1800)
-    args = parser.parse_args()
-    if args.duration < 20:
-        raise ValueError("最短试运行 20 秒；最终验收至少 1800 秒")
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
+def execute(args, root):
     repo = Path(__file__).resolve().parents[1]
     report = root / "reports" / ("integration-" + uuid.uuid4().hex)
     report.mkdir()
@@ -144,12 +130,15 @@ def main():
     container = "driving-data-platform-mac-postgres-1"
 
     def inspect_container():
-        item = json.loads(subprocess.check_output(["docker", "inspect", container]))[0]
-        return {
-            "restart_count": item["RestartCount"],
-            "started_at": item["State"]["StartedAt"],
-            "oom": item["State"]["OOMKilled"],
-        }
+        result = {}
+        for name in (container, "driving-data-platform-mac-metastore-1"):
+            item = json.loads(subprocess.check_output(["docker", "inspect", name]))[0]
+            result[name] = {
+                "restart_count": item["RestartCount"],
+                "started_at": item["State"]["StartedAt"],
+                "oom": item["State"]["OOMKilled"],
+            }
+        return result
 
     before = inspect_container()
     api_before = api_status(root)
@@ -203,29 +192,25 @@ def main():
         futures = [pool.submit(client, index) for index in range(5)]
         sampler = pool.submit(sample)
         try:
-            config = load_config(root / "application.yaml")
-            for version in ("warehouse-v2", "acceptance-" + uuid.uuid4().hex):
-                preflight(config, repo)
-                ingested = ingest(config, repo)
-                warehouse = build(root, repo, version)
-                loaded = load(root, Path(warehouse["directory"]))
+
+            def ready(loaded):
                 with state_lock:
                     known.add(loaded["generation"])
-                with connect(root) as conn:
-                    pointer = active(conn)
-                published = publish(root, loaded["generation"], pointer)
-                rounds.append(
-                    {
-                        "ods": ingested,
-                        "warehouse": {
-                            "directory": warehouse["directory"],
-                            "reused": warehouse["reused"],
-                        },
-                        "load": loaded,
-                        "publish": published,
-                    }
-                )
+
+            for version in (DEFAULT_VERSION, "acceptance-" + uuid.uuid4().hex):
+                result = run(root, repo, version, on_ready=ready)
+                rounds.append(result)
                 (report / "rounds.json").write_text(json.dumps(rounds, indent=2))
+            # 同版本再次执行，服务身份与目录身份必须完全复用。
+            repeated = run(root, repo, DEFAULT_VERSION, on_ready=ready)
+            if (
+                not repeated["steps"]["load"]["reused"]
+                or repeated["steps"]["load"]["generation"]
+                != rounds[0]["steps"]["load"]["generation"]
+            ):
+                raise ValueError("默认链路重跑产生了重复服务版本")
+            rounds.append(repeated)
+            (report / "rounds.json").write_text(json.dumps(rounds, indent=2))
             with connect(root) as conn:
                 pointer = active(conn)
             rollback = publish(root, pinned, pointer, rollback=True)
@@ -269,7 +254,7 @@ def main():
         and p95 is not None
         and p95 <= 2
         and before == after
-        and not after["oom"]
+        and all(not value["oom"] for value in after.values())
         and usage_after["status"] == "passed"
         and resources
         and all("error" not in r for r in resources)
@@ -311,6 +296,35 @@ def main():
         )
     )
     return 0 if summary["status"] == "passed" else 2
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--duration", type=int, default=1800)
+    args = parser.parse_args()
+    if args.duration < 20:
+        parser.error("最短试运行 20 秒，正式验收至少 1800 秒")
+    root = Path(
+        os.environ.get(
+            "DDP_OUTPUT_ROOT",
+            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
+        )
+    )
+    from driving_data_platform.common.operations import operation_lock
+
+    try:
+        with operation_lock(root):
+            return execute(args, root)
+    except (OSError, ValueError) as error:
+        print(
+            json.dumps(
+                {
+                    "status": "blocked",
+                    "error": "无法取得串行验证锁或读取运行证据: " + str(error),
+                }
+            )
+        )
+        return 2
 
 
 if __name__ == "__main__":
