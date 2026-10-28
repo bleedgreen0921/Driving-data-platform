@@ -9,6 +9,7 @@ from pathlib import Path
 
 import psycopg
 
+from driving_data_platform.pipeline import DEFAULT_VERSION
 from driving_data_platform.publishing.store import active, connect, publish
 from driving_data_platform.warehouse.build import build
 from driving_data_platform.warehouse.catalog import materialize
@@ -28,7 +29,9 @@ def main():
         "snapshot_id"
     ]
     repo = Path(__file__).resolve().parents[1]
-    first = materialize(root, repo, root / "warehouse" / (snapshot + "-warehouse-v3"))
+    first = materialize(
+        root, repo, root / "warehouse" / (snapshot + "-" + DEFAULT_VERSION)
+    )
     with connect(root) as conn:
         pointer = active(conn)
     original_pointer = pointer

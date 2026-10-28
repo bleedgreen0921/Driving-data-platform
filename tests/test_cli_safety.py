@@ -82,3 +82,30 @@ def test_direct_integration_cannot_bypass_serial_lock(tmp_path):
     assert result.returncode == 2
     assert "串行验证锁" in json.loads(result.stdout)["error"]
     assert not (root / "reports").exists()
+
+
+def test_run_show_can_read_legacy_report_while_operation_locked(tmp_path):
+    import fcntl
+
+    root = tmp_path / "artifacts"
+    (root / "reports").mkdir(parents=True)
+    run_id = "a" * 32
+    legacy = {"status": "failed", "steps": {}}
+    (root / "reports" / ("pipeline-" + run_id + ".json")).write_text(json.dumps(legacy))
+    with (root / ".operation.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/manage_platform.py",
+                "run-show",
+                "--run-id",
+                run_id,
+            ],
+            env=dict(os.environ, DDP_OUTPUT_ROOT=str(root)),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    assert result.returncode == 0
+    assert json.loads(result.stdout) == legacy

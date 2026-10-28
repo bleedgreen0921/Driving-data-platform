@@ -9,6 +9,7 @@ import psycopg
 from psycopg import sql
 from psycopg.types.json import Jsonb
 
+from driving_data_platform.common.errors import PlatformError
 from driving_data_platform.common.preflight import digest
 from driving_data_platform.warehouse.build import reconcile, rows, verify
 
@@ -155,7 +156,11 @@ def load(root: Path, directory: Path, *, fail=False, fail_after_commit=False):
                         ).format(sql.Identifier(table)),
                         (generation,),
                     ).fetchone()[0] != len(values):
-                        raise ValueError("数据库行数不一致")
+                        raise PlatformError(
+                            "RECONCILIATION_FAILED",
+                            "database-row-count",
+                            "数据库行数不一致",
+                        )
                     # 同一事务内从数据库回读，核对全部业务值，不能只核对行数。
                     if has_payload:
                         returned = [
@@ -173,7 +178,11 @@ def load(root: Path, directory: Path, *, fail=False, fail_after_commit=False):
                         ) != sorted(
                             expected, key=lambda r: json.dumps(r, sort_keys=True)
                         ):
-                            raise ValueError("数据库明细不一致")
+                            raise PlatformError(
+                                "RECONCILIATION_FAILED",
+                                "database-rows",
+                                "数据库明细不一致",
+                            )
                     if fail and table == "frame":
                         raise ValueError("fault: load-after-frame")
                 for name in ("dim_category", "dim_sensor", "dim_location", "metrics"):
@@ -224,6 +233,9 @@ def load(root: Path, directory: Path, *, fail=False, fail_after_commit=False):
 
 
 def publish(root: Path, generation: str, expected: dict, *, rollback=False):
+    from driving_data_platform.publishing.difference import difference
+
+    summary = difference(root, generation, expected)
     with connect(root) as conn:
         if conn.execute(
             "SELECT status FROM control.generation WHERE generation=%s", (generation,)
@@ -234,7 +246,11 @@ def publish(root: Path, generation: str, expected: dict, *, rollback=False):
             (generation, expected["generation"], expected["revision"]),
         ).fetchone()
         if result is None:
-            raise ValueError("活动指针已改变；本次发布竞争失败")
+            raise PlatformError(
+                "PUBLICATION_CONFLICT",
+                "active-pointer-changed",
+                "活动指针已改变；本次发布竞争失败",
+            )
         conn.execute(
             "INSERT INTO control.publication(event_id,previous_generation,generation,revision,action) VALUES(%s,%s,%s,%s,%s)",
             (
@@ -245,4 +261,9 @@ def publish(root: Path, generation: str, expected: dict, *, rollback=False):
                 "rollback" if rollback else "publish",
             ),
         )
-    return {"status": "passed", "generation": generation, "revision": result[0]}
+    return {
+        "status": "passed",
+        "generation": generation,
+        "revision": result[0],
+        "difference_report": summary["report"],
+    }

@@ -7,6 +7,8 @@ import subprocess
 import uuid
 from pathlib import Path
 
+from driving_data_platform.common.contract import load_contract
+from driving_data_platform.common.errors import PlatformError
 from driving_data_platform.common.preflight import digest
 from driving_data_platform.ingestion.nuscenes import atomic_json, verify_snapshot
 from driving_data_platform.warehouse.baseline import baseline
@@ -61,21 +63,40 @@ def reconcile(source: Path, directory: Path):
         if sorted(actual, key=key) != sorted(values, key=key) or counts[name][
             "count"
         ] != len(values):
-            raise ValueError("独立对账不一致: " + name)
+            raise PlatformError(
+                "RECONCILIATION_FAILED",
+                "warehouse-reconciliation",
+                "独立对账不一致: " + name,
+            )
     return counts
 
 
-def build(root: Path, repo: Path, version="warehouse-v3", *, fail=False) -> dict:
+def build(
+    root: Path, repo: Path, version="warehouse-v4", *, fail=False, source=None
+) -> dict:
     if not re.fullmatch(r"[a-zA-Z0-9_-]{1,64}", version):
         raise ValueError("处理版本只能包含字母、数字、下划线与短横线")
-    water = json.loads((root / "ingestion/watermark.json").read_text())
-    source = (
-        root
-        / "ingestion/snapshots"
-        / (water["snapshot_id"] + "-" + water["processing_version"])
-    )
-    if digest(source / "complete.json") != water["completion_sha256"]:
-        raise ValueError("ODS 水位摘要不一致")
+    if source is None:
+        water = json.loads((root / "ingestion/watermark.json").read_text())
+        source = (
+            root
+            / "ingestion/snapshots"
+            / (water["snapshot_id"] + "-" + water["processing_version"])
+        )
+        if digest(source / "complete.json") != water["completion_sha256"]:
+            raise PlatformError(
+                "CONTRACT_CONFLICT", "ods-watermark-mismatch", "ODS 水位摘要不一致"
+            )
+    source = Path(source)
+    if (
+        source.parent.resolve() != (root / "ingestion/snapshots").resolve()
+        or source.is_symlink()
+    ):
+        raise PlatformError(
+            "INPUT_INVALID", "invalid-ods-source", "ODS 输入必须是正式快照目录"
+        )
+    input_sha256 = digest(source / "complete.json")
+    contract = load_contract(repo)
     complete = verify_snapshot(source)
     code = {
         str(p.relative_to(repo)): digest(p)
@@ -90,9 +111,14 @@ def build(root: Path, repo: Path, version="warehouse-v3", *, fail=False) -> dict
         result = verify(target)
         if (
             result["code"] != code
-            or result["input_sha256"] != water["completion_sha256"]
+            or result["input_sha256"] != input_sha256
+            or result.get("data_contract") != contract
         ):
-            raise ValueError("已存在版本的代码或输入不同，请使用新处理版本")
+            raise PlatformError(
+                "CONTRACT_CONFLICT",
+                "warehouse-identity-changed",
+                "已存在版本的代码、契约或输入不同，请使用新处理版本",
+            )
         reconcile(source, target)
         return {
             "status": "passed",
@@ -129,13 +155,16 @@ def build(root: Path, repo: Path, version="warehouse-v3", *, fail=False) -> dict
             command, check=False, stdout=stream, stderr=subprocess.STDOUT
         )
     if result.returncode:
-        raise ValueError("Spark 加工失败，查看 " + str(log))
+        raise PlatformError(
+            "EXECUTION_FAILED", "spark-failed", "Spark 加工失败，查看 " + str(log)
+        )
     counts = reconcile(source, staging)
     manifest = {
         "snapshot_id": complete["snapshot_id"],
         "processing_version": version,
         "schema_version": "warehouse-schema-v1",
-        "input_sha256": water["completion_sha256"],
+        "input_sha256": input_sha256,
+        "data_contract": contract,
         "code": code,
         "tables": counts,
         "artifacts": {

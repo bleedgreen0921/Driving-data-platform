@@ -7,6 +7,8 @@ import subprocess
 import uuid
 from pathlib import Path
 
+from driving_data_platform.common.contract import load_contract
+from driving_data_platform.common.errors import PlatformError
 from driving_data_platform.common.identity import canonical
 from driving_data_platform.common.preflight import digest
 from driving_data_platform.ingestion.nuscenes import atomic_json, verify_snapshot
@@ -76,7 +78,11 @@ def job(root: Path, repo: Path, trial: Path, mode: str, *, fail_register=False):
             args, stdout=stream, stderr=subprocess.STDOUT, check=False
         )
     if result.returncode:
-        raise ValueError("Metastore " + mode + " 失败，查看 " + str(log))
+        raise PlatformError(
+            "EXECUTION_FAILED",
+            "catalog-job-failed",
+            "Metastore " + mode + " 失败，查看 " + str(log),
+        )
     return log
 
 
@@ -191,6 +197,12 @@ def production_entry(root: Path, repo: Path, source: Path) -> Path:
     manifest = verify(source)
     if source.parent.resolve() != (root / "warehouse").resolve():
         raise ValueError("生产消费必须引用正式数仓目录")
+    if manifest.get("data_contract") != load_contract(repo):
+        raise PlatformError(
+            "CONTRACT_CONFLICT",
+            "catalog-data-contract",
+            "新消费必须使用当前数据契约，请构建新处理版本",
+        )
     checksum = digest(source / "complete.json")
     runtime = json.loads((repo / "infra/metastore/runtime.lock.json").read_text())
     contract = {
@@ -218,7 +230,11 @@ def production_entry(root: Path, repo: Path, source: Path) -> Path:
             or request.get("source") != "/warehouse/" + source.name
             or not request.get("production")
         ):
-            raise ValueError("同一处理版本的消费代码或环境已变化，请使用新的 --version")
+            raise PlatformError(
+                "CONTRACT_CONFLICT",
+                "catalog-identity-changed",
+                "同一处理版本的消费代码或环境已变化，请使用新的 --version",
+            )
     else:
         if any(entry.iterdir()):
             raise ValueError("目录身份不完整，拒绝覆盖已有产物")

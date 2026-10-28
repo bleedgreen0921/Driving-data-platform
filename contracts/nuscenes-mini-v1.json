@@ -1,0 +1,38 @@
+{
+  "contract_id": "nuscenes-mini",
+  "version": "1",
+  "dataset_version": "v1.0-mini",
+  "tables": [
+    "attribute",
+    "calibrated_sensor",
+    "category",
+    "ego_pose",
+    "instance",
+    "log",
+    "map",
+    "sample",
+    "sample_annotation",
+    "sample_data",
+    "scene",
+    "sensor",
+    "visibility"
+  ],
+  "semantics": {
+    "frame": "每个关键帧一行，主要筛选粒度",
+    "media": "每条 sample_data 一行；关键帧媒体与 sweep 分开统计",
+    "annotation": "每条标注一行；对象按 instance_id 去重",
+    "identity": "entity_id 保留 source_token；媒体 ID、内容 SHA-256、generation 分别标识记录、内容和服务版本",
+    "time": "UTC 整数微秒 timestamp_us",
+    "filters": "精确类别；所有必需通道取交集，通道来自已校验关键帧媒体",
+    "quality": "核心主外键、链表、时间及文件摘要错误阻断；地图范围外 log 引用单独报告"
+  },
+  "implementation": [
+    "common/preflight.py",
+    "ingestion/nuscenes.py",
+    "warehouse/baseline.py",
+    "warehouse/catalog_contract.py"
+  ],
+  "tests": [
+    "tests"
+  ]
+}

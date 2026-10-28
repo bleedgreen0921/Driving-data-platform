@@ -1,9 +1,12 @@
 """只验证目录身份契约，真实读写另由 Metastore 验证器执行。"""
 
 import json
+import shutil
+from pathlib import Path
 
 import pytest
 
+from driving_data_platform.common.contract import load_contract
 from driving_data_platform.common.preflight import digest
 from driving_data_platform.warehouse.catalog import production_entry
 
@@ -39,6 +42,14 @@ def identity_files(tmp_path):
             }
         )
     )
+    (repo / "contracts").mkdir()
+    shutil.copy(
+        Path(__file__).resolve().parents[1] / "contracts/nuscenes-mini-v1.json",
+        repo / "contracts/nuscenes-mini-v1.json",
+    )
+    manifest = json.loads((source / "complete.json").read_text())
+    manifest["data_contract"] = load_contract(repo)
+    (source / "complete.json").write_text(json.dumps(manifest))
     return root, repo, source
 
 

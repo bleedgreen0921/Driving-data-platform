@@ -263,6 +263,8 @@ def execute(args, root):
         else "failed",
         "scope": "final-30-minute"
         if args.duration >= 1800 and elapsed >= 1800
+        else "current-10-minute"
+        if args.duration == 600 and elapsed >= 600
         else "short-rehearsal-only",
         "failure": failure,
         "duration_seconds": elapsed,

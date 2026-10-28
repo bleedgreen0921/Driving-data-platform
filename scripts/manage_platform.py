@@ -11,9 +11,8 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-import psycopg
-
 from driving_data_platform.common.config import ConfigError, external_path, load_config
+from driving_data_platform.common.errors import PlatformError
 from driving_data_platform.common.preflight import TABLES, digest
 from driving_data_platform.common.resources import inspect
 from driving_data_platform.ingestion.nuscenes import ingest
@@ -103,7 +102,7 @@ def prepare_images():
     budget = load_config(REPO / "configs/platform.example.yaml")
     budget["deployment"]["persistence_root"] = str(ROOT)
     if inspect(budget, REPO)["status"] != "passed":
-        raise ValueError("资源门禁未通过")
+        raise PlatformError("RESOURCE_BLOCKED", "resource-gate", "资源门禁未通过")
     for key, tag in [
         ("POSTGRES", "postgres:16.15"),
         ("SPARK", "spark:4.2.0-java21-python3"),
@@ -161,6 +160,7 @@ def verify(selected, faults=False, *, duration=1800, lock_fd=None):
     directory.mkdir(parents=True)
     results = []
     commands = {
+        "evidence": [sys.executable, "scripts/verify_evidence.py"],
         "pipeline": [
             sys.executable,
             "scripts/verify_pipeline.py",
@@ -278,6 +278,8 @@ def main():
     parser.add_argument(
         "command",
         choices=[
+            "run-show",
+            "publish-diff",
             "prepare",
             "prepare-images",
             "hms-register",
@@ -308,6 +310,7 @@ def main():
         "checks",
         nargs="*",
         choices=[
+            "evidence",
             "pipeline",
             "metastore",
             "regression",
@@ -332,7 +335,9 @@ def main():
     )
     parser.add_argument("--trial", help="Hive 候选消费的 32 位试验 ID")
     parser.add_argument("--generation")
-    parser.add_argument("--version", default="warehouse-v3")
+    parser.add_argument("--against-generation")
+    parser.add_argument("--run-id")
+    parser.add_argument("--version", default="warehouse-v4")
     parser.add_argument(
         "--faults",
         action="store_true",
@@ -363,8 +368,24 @@ def main():
         validated_root = True
         ROOT.mkdir(parents=True, exist_ok=True)
         with (ROOT / ".operation.lock").open("a") as lock:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            if args.command == "prepare":
+            if args.command not in {"run-show", "publish-diff"}:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            if args.command == "run-show":
+                from driving_data_platform.common.runs import show
+
+                report = show(ROOT, args.run_id or "")
+            elif args.command == "publish-diff":
+                from driving_data_platform.publishing.difference import difference
+                from driving_data_platform.publishing.store import active, connect
+
+                if not args.generation:
+                    raise ValueError("必须指定 --generation")
+                with connect(ROOT) as conn:
+                    expected = active(conn)
+                if args.against_generation:
+                    expected = {"generation": args.against_generation, "revision": None}
+                report = difference(ROOT, args.generation, expected)
+            elif args.command == "prepare":
                 report = prepare()
             elif args.command in {"hms-register", "hms-consume"}:
                 from driving_data_platform.warehouse.catalog import (
@@ -489,7 +510,9 @@ def main():
                     budget = load_config(REPO / "configs/platform.example.yaml")
                     budget["deployment"]["persistence_root"] = str(ROOT)
                     if inspect(budget, REPO)["status"] != "passed":
-                        raise ValueError("资源门禁未通过")
+                        raise PlatformError(
+                            "RESOURCE_BLOCKED", "resource-gate", "资源门禁未通过"
+                        )
                 if args.command == "stop":
                     from api_process import stop
 
@@ -535,13 +558,13 @@ def main():
             json.dumps(report, indent=2)
         )
         print(json.dumps(report, ensure_ascii=False))
-        return 0 if report["status"] == "passed" else 2
-    except (OSError, ValueError, subprocess.SubprocessError, psycopg.Error) as error:
+        return 0 if args.command == "run-show" or report["status"] == "passed" else 2
+    except (Exception, KeyboardInterrupt) as error:  # noqa: BLE001 -- CLI 边界统一记录未知失败
+        from driving_data_platform.common.errors import describe
+
         report = {
             "status": "blocked",
-            "error": str(error)
-            if isinstance(error, ValueError)
-            else "操作失败：检查本轮日志、配置、依赖或是否已有操作运行；不自动安装或停止服务。",
+            "error": describe(error, args.command),
         }
         if validated_root:
             try:
