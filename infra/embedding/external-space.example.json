@@ -1,0 +1,26 @@
+{
+  "schema_version": 3,
+  "implementation_sha256": null,
+  "backend": "external_api",
+  "model": null,
+  "revision": null,
+  "revision_field": "model",
+  "protocol": "openai_embeddings",
+  "image_protocol": "content_parts_v1",
+  "image_preprocessing": {
+    "formats": ["JPEG", "PNG"],
+    "max_bytes": 26214400,
+    "max_edge": 8192,
+    "max_pixels": 20000000,
+    "frames": 1,
+    "transmission": "original-bytes-no-exif-rotation-resize-or-reencode",
+    "pillow_version": "13.0.0"
+  },
+  "text_instruction": "",
+  "image_instruction": "",
+  "dimension": null,
+  "dtype": "float32",
+  "normalization": "l2",
+  "distance": "cosine",
+  "test_only": false
+}

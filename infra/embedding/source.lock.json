@@ -1,0 +1,1 @@
+{"acquired_at":"2026-11-02","base_image":"mirror.gcr.io/library/postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97","license":"PostgreSQL License","sha256":"cac0b10c360f05b2d521200105ba3697e773d4cd3731f5a915a7e37ebe0bea85","url":"https://codeload.github.com/pgvector/pgvector/tar.gz/refs/tags/v0.8.7","version":"0.8.7"}

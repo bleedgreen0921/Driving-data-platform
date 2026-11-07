@@ -13,6 +13,8 @@ from driving_data_platform.common.preflight import digest
 from driving_data_platform.ingestion.nuscenes import atomic_json, verify_snapshot
 from driving_data_platform.warehouse.baseline import baseline
 
+DEFAULT_VERSION = "warehouse-v5"
+
 
 def rows(directory: Path, name: str) -> list[dict]:
     return [
@@ -72,7 +74,7 @@ def reconcile(source: Path, directory: Path):
 
 
 def build(
-    root: Path, repo: Path, version="warehouse-v4", *, fail=False, source=None
+    root: Path, repo: Path, version=DEFAULT_VERSION, *, fail=False, source=None
 ) -> dict:
     if not re.fullmatch(r"[a-zA-Z0-9_-]{1,64}", version):
         raise ValueError("处理版本只能包含字母、数字、下划线与短横线")

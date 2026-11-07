@@ -10,6 +10,7 @@ from pathlib import Path
 from psycopg import sql
 
 from driving_data_platform.common.preflight import digest
+from driving_data_platform.common.resources import PROJECT_DISK_GIB
 from driving_data_platform.publishing.store import connect
 from driving_data_platform.warehouse.catalog import check_image, command
 
@@ -24,7 +25,8 @@ def prepare(root: Path, repo: Path):
     budget["deployment"]["persistence_root"] = str(root)
     if (
         inspect(budget, repo)["status"] != "passed"
-        or usage(root, repo)["project_bytes_conservative"] + 2 * 1024**3 > 24 * 1024**3
+        or usage(root, repo)["project_bytes_conservative"] + 2 * 1024**3
+        > PROJECT_DISK_GIB * 1024**3
     ):
         raise ValueError("元数据候选资源门禁不通过")
     base = root / "metastore"

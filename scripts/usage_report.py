@@ -1,21 +1,36 @@
 """项目空间占用与保留报告，不删除旧版本或试验数据库。"""
 
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
 
+from driving_data_platform.common.resources import PROJECT_DISK_GIB
 from driving_data_platform.publishing.store import connect
 
 GIB = 1024**3
 
 
 def usage(root: Path, repo: Path):
-    files = sum(
-        p.stat().st_blocks * 512
-        for p in root.rglob("*")
-        if p.is_file() and not p.is_symlink()
-    )
+    seen = set()
+    files = 0
+    source_files = root / "embedding/model-source-files.json"
+    referenced = []
+    if source_files.exists():
+        referenced = [Path(p) for p in json.loads(source_files.read_text())["files"]]
+    model_config = root / "embedding/model.json"
+    if model_config.exists():
+        referenced += [
+            Path(v["path"]) for v in json.loads(model_config.read_text()).values()
+        ]
+    for path in [*root.rglob("*"), *referenced]:
+        if path.is_file() and not path.is_symlink():
+            info = path.stat()
+            key = (info.st_dev, info.st_ino)
+            if key not in seen:
+                files += info.st_blocks * 512
+                seen.add(key)
     images = json.loads((repo / "infra/docker/versions.lock.json").read_text())
     image_bytes = sum(item["size_bytes"] for item in images.values())
     candidate_lock = repo / "infra/metastore/runtime.lock.json"
@@ -60,16 +75,91 @@ def usage(root: Path, repo: Path):
         generations = conn.execute(
             "SELECT generation,processing_version,status FROM control.generation ORDER BY created_at"
         ).fetchall()
-    total = files + image_bytes + volume
+    embedding_images = 0
+    embedding_volumes = 0
+    embedding_cache = 0
+    embedding_lock = repo / "infra/embedding/runtime.lock.json"
+    if embedding_lock.exists():
+        runtime = json.loads(embedding_lock.read_text())
+        embedding_images = runtime["size_bytes"]
+        names = subprocess.check_output(
+            ["docker", "volume", "ls", "--format", "{{.Name}}"], text=True
+        ).splitlines()
+        for name in names:
+            if re.fullmatch(r"ddp-(?:embedding|deploy)-[a-f0-9]{32}", name):
+                embedding_volumes += (
+                    int(
+                        subprocess.check_output(
+                            [
+                                "docker",
+                                "run",
+                                "--rm",
+                                "--network",
+                                "none",
+                                "--memory",
+                                "128m",
+                                "--entrypoint",
+                                "du",
+                                "--volume",
+                                name + ":/usage:ro",
+                                runtime["image"],
+                                "-sk",
+                                "/usage",
+                            ],
+                            text=True,
+                        ).split()[0]
+                    )
+                    * 1024
+                )
+        raw = subprocess.check_output(
+            [
+                "docker",
+                "buildx",
+                "du",
+                "--filter",
+                "description~=pgvector",
+                "--format",
+                "{{.Size}}",
+            ],
+            text=True,
+        )
+        for size in raw.splitlines():
+            match = re.fullmatch(r"([0-9.]+)([kMGT]?B)", size.strip())
+            if not match:
+                raise ValueError("无法计量向量镜像构建缓存")
+            embedding_cache += int(
+                float(match[1])
+                * {"B": 1, "kB": 1000, "MB": 1000**2, "GB": 1000**3, "TB": 1000**4}[
+                    match[2]
+                ]
+            )
+    total = (
+        files
+        + image_bytes
+        + volume
+        + embedding_images
+        + embedding_volumes
+        + embedding_cache
+    )
+    # 与正式部署使用同一实测盘点，包含保留的演练卷和回退镜像。
+    from embedding_search_resources import inventory
+
+    measured = inventory(root, repo)
+    total = measured["project_bytes_conservative"]
     free = shutil.disk_usage(root).free
     return {
         "status": "passed"
-        if total <= 24 * GIB and free >= 12 * GIB and vm_free >= 12 * GIB
+        if total <= PROJECT_DISK_GIB * GIB and free >= 12 * GIB and vm_free >= 12 * GIB
         else "blocked",
         "project_bytes_conservative": total,
         "external_artifact_allocated_bytes": files,
+        "model_source_references_count": len(referenced),
+        "disk_budget_gib": PROJECT_DISK_GIB,
         "images_bytes_conservative": image_bytes,
         "postgres_volume_bytes": volume,
+        "embedding_images_bytes": embedding_images,
+        "embedding_trial_volumes_bytes": embedding_volumes,
+        "embedding_build_cache_bytes": embedding_cache,
         "host_free_bytes": free,
         "docker_volume_free_bytes": vm_free,
         "databases": [{"database": name, "bytes": size} for name, size in databases],

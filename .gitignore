@@ -11,8 +11,6 @@ dist/
 .env
 .env.*
 !.env.example
-configs/application.yaml
-configs/*.local.*
 data/
 models/
 weights/
@@ -25,9 +23,9 @@ logs/
 *.pth
 *.ckpt
 .DS_Store
-.env
 # Active documents are versioned; runtime artifacts stay outside the repository.
-docs/
-CHANGE_REQUESTS.md
-verify.sh
-requirements.lock
+configs/*
+!configs/README.md
+!configs/*.example.yaml
+!configs/*.example.json
+!configs/table-lineage-v1.json

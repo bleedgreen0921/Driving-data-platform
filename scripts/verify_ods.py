@@ -3,11 +3,13 @@
 import argparse
 import copy
 import json
-import os
 import uuid
 from pathlib import Path
 
-from driving_data_platform.common.config import load_config
+from driving_data_platform.common.config import (
+    application_config,
+    output_root,
+)
 from driving_data_platform.ingestion.nuscenes import (
     IngestionError,
     ingest,
@@ -20,13 +22,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--faults", action="store_true")
     args = parser.parse_args()
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
-    config = load_config(root / "application.yaml")
+    root = output_root()
+    config = application_config(root)
     repo = Path(__file__).resolve().parents[1]
     first, second = ingest(config, repo), ingest(config, repo)
     if (

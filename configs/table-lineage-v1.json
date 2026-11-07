@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "dependencies": [
+    {
+      "target": "dim_scene",
+      "upstream": [
+        "scene",
+        "log"
+      ],
+      "sql": "sql/spark/scene.sql",
+      "sha256": "283536263318bb0af159cc69ee42780c21b31b3f33135392dbb8b299813fe04f",
+      "serving_table": "serving.scene",
+      "kind": null
+    },
+    {
+      "target": "dim_category",
+      "upstream": [
+        "category"
+      ],
+      "sql": "sql/spark/category.sql",
+      "sha256": "5c0560f37cefc1a84c7e433a4dde0603ddeb6cfdca526e0ca2db48a8f5349865",
+      "serving_table": "serving.dimension",
+      "kind": "dim_category"
+    },
+    {
+      "target": "dim_sensor",
+      "upstream": [
+        "sensor"
+      ],
+      "sql": "sql/spark/sensor.sql",
+      "sha256": "1a52dfa883135a88b8d3ce8c2320304c088372a08d0b12c75a447aac95ce9ada",
+      "serving_table": "serving.dimension",
+      "kind": "dim_sensor"
+    },
+    {
+      "target": "dim_location",
+      "upstream": [
+        "dim_scene"
+      ],
+      "sql": "sql/spark/location.sql",
+      "sha256": "d1813c1243a474101df5ba34dbb06e9fe4d50cd1e2009cfb2429bae272cd211d",
+      "serving_table": "serving.dimension",
+      "kind": "dim_location"
+    },
+    {
+      "target": "fact_frame",
+      "upstream": [
+        "sample",
+        "scene",
+        "log"
+      ],
+      "sql": "sql/spark/frame.sql",
+      "sha256": "798bd05570456d4bdf07fcfeaf202b60ede8542f93fab421dc2eff667950942b",
+      "serving_table": "serving.frame",
+      "kind": null
+    },
+    {
+      "target": "fact_media",
+      "upstream": [
+        "sample_data",
+        "sample",
+        "calibrated_sensor",
+        "sensor"
+      ],
+      "sql": "sql/spark/media.sql",
+      "sha256": "c123569a1b4d35ce6cba8be100f7a8170fec3d3afa85a24fffa53da2d08cca1c",
+      "serving_table": "serving.media",
+      "kind": null
+    },
+    {
+      "target": "fact_annotation",
+      "upstream": [
+        "sample_annotation",
+        "sample",
+        "instance",
+        "category"
+      ],
+      "sql": "sql/spark/annotation.sql",
+      "sha256": "210bcb7590bba2041164ba990bf559437542da8c6cbbbeb3dbf2b83e38735b04",
+      "serving_table": "serving.annotation",
+      "kind": null
+    },
+    {
+      "target": "frame_category",
+      "upstream": [
+        "fact_annotation"
+      ],
+      "sql": "sql/spark/frame_category.sql",
+      "sha256": "c77b4784fce9c64c6fc5358e09d0a6c25ffbb6897492bc02edbfdf41a149459d",
+      "serving_table": "serving.frame_category",
+      "kind": null
+    },
+    {
+      "target": "frame_channel",
+      "upstream": [
+        "fact_media"
+      ],
+      "sql": "sql/spark/frame_channel.sql",
+      "sha256": "ef9509438fca2ccbfb50c8fa889ab2887ac631485dae28b5779eb69945d6abae",
+      "serving_table": "serving.frame_channel",
+      "kind": null
+    },
+    {
+      "target": "statistics",
+      "upstream": [
+        "fact_frame",
+        "fact_annotation",
+        "fact_media"
+      ],
+      "sql": "sql/spark/statistics.sql",
+      "sha256": "6c601811a2a3d8ddd0091d4d21817abd2edbe60c8778830802a98f5725930d2b",
+      "serving_table": "serving.statistics",
+      "kind": null
+    },
+    {
+      "target": "metrics",
+      "upstream": [
+        "fact_frame",
+        "fact_annotation",
+        "fact_media"
+      ],
+      "sql": "sql/spark/metrics.sql",
+      "sha256": "65a57554abfe7e978f1f6536e300d1874836e70b7c485281e62ed513642cb2aa",
+      "serving_table": "serving.dimension",
+      "kind": "metrics"
+    }
+  ]
+}

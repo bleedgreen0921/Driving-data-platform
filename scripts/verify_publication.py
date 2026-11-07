@@ -2,13 +2,13 @@
 
 import argparse
 import json
-import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import psycopg
 
+from driving_data_platform.common.config import output_root
 from driving_data_platform.pipeline import DEFAULT_VERSION
 from driving_data_platform.publishing.store import active, connect, publish
 from driving_data_platform.warehouse.build import build
@@ -19,12 +19,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--faults", action="store_true")
     args = parser.parse_args()
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
+    root = output_root()
     snapshot = json.loads((root / "ingestion/watermark.json").read_text())[
         "snapshot_id"
     ]

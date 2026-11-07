@@ -1,0 +1,10 @@
+{
+  "backend": "external_api",
+  "endpoint": "https://service.example.invalid/v1",
+  "model": null,
+  "timeout_seconds": 60,
+  "api_key_env": "DDP_EXTERNAL_API_KEY",
+  "auth_header": "Authorization",
+  "max_text_characters": 4096,
+  "max_image_bytes": 26214400
+}

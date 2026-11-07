@@ -1,4 +1,4 @@
-"""Hive Metastore 候选准备与真实 Parquet 消费；不自动发布版本。"""
+"""Hive Metastore 目录登记与真实 Parquet 消费；不自动发布版本。"""
 
 import hashlib
 import json
@@ -36,7 +36,7 @@ def check_image(reference):
         subprocess.check_output(["docker", "image", "inspect", reference])
     )[0]
     if info["Architecture"] != "arm64":
-        raise ValueError("Metastore 候选仅验证原生 arm64 镜像")
+        raise ValueError("Metastore 仅验证原生 arm64 镜像")
     return info
 
 
@@ -52,7 +52,7 @@ def job(root: Path, repo: Path, trial: Path, mode: str, *, fail_register=False):
         or digest(root / "metastore/dependencies/postgresql.jar")
         != lock["jdbc"]["sha256"]
     ):
-        raise ValueError("候选配置或 JDBC 与锁文件不一致")
+        raise ValueError("目录配置或 JDBC 与锁文件不一致")
     for name in ("hive", "spark_client"):
         check_image(lock[name]["image"])
     log = trial / (mode + "-" + uuid.uuid4().hex + ".log")
@@ -89,7 +89,7 @@ def job(root: Path, repo: Path, trial: Path, mode: str, *, fail_register=False):
 def new_trial(root: Path, source: Path):
     manifest = verify(source)
     if source.parent.resolve() != (root / "warehouse").resolve():
-        raise ValueError("候选仅消费正式数仓目录内已完成的版本")
+        raise ValueError("目录仅消费正式数仓目录内已完成的版本")
     ods = root / "ingestion/snapshots" / (manifest["snapshot_id"] + "-nuscenes-ods-v1")
     verify_snapshot(ods)
     if digest(ods / "complete.json") != manifest["input_sha256"]:

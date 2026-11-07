@@ -1,7 +1,6 @@
 """独立试验输入验证差异、契约冲突、未知提交及报告门禁。"""
 
 import json
-import os
 import shutil
 import signal
 import subprocess
@@ -13,6 +12,7 @@ from unittest.mock import patch
 
 import psycopg
 
+from driving_data_platform.common.config import output_root
 from driving_data_platform.common.errors import PlatformError, describe
 from driving_data_platform.common.operations import operation_lock
 from driving_data_platform.common.preflight import digest
@@ -199,11 +199,13 @@ def verify(root, repo):
             )
             try:
                 publish(root, legacy[0], expected, rollback=True)
-                result["checks"]["legacy_rollback"] = legacy_diff["report"]
-            finally:
-                with connect(root) as conn:
-                    pointer = active(conn)
-                publish(root, expected["generation"], pointer, rollback=True)
+            except PlatformError as error:
+                assert error.code == "retired-json-generation"
+                result["checks"]["legacy_publish_rejected"] = True
+            else:
+                raise AssertionError("旧 JSON 发布必须拒绝")
+            with connect(root) as conn:
+                assert active(conn) == expected
         result["status"] = "passed"
     finally:
         if result["status"] == "running":
@@ -213,12 +215,7 @@ def verify(root, repo):
 
 
 if __name__ == "__main__":
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
+    root = output_root()
     with operation_lock(root):
         print(
             json.dumps(

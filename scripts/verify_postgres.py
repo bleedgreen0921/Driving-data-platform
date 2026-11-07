@@ -2,18 +2,15 @@
 
 import argparse
 import json
-import os
 import subprocess
 import uuid
 from pathlib import Path
 
 import psycopg
 
-ROOT = Path(
-    os.environ.get(
-        "DDP_OUTPUT_ROOT", "/Users/qiujiajun/Project/driving-data-platform-artifacts"
-    )
-)
+from driving_data_platform.common.config import output_root, port
+
+ROOT = output_root(required=False)
 REPO = Path(__file__).resolve().parents[1]
 
 
@@ -23,7 +20,7 @@ def connection():
     )
     return psycopg.connect(
         host="127.0.0.1",
-        port=55433,
+        port=port("postgres"),
         dbname="ddp",
         user="ddp",
         password=env["DDP_POSTGRES_PASSWORD"],

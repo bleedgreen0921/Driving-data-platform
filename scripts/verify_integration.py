@@ -3,7 +3,6 @@
 import argparse
 import json
 import math
-import os
 import shutil
 import subprocess
 import threading
@@ -19,13 +18,16 @@ from api_process import status as api_status
 from usage_report import usage
 from verify_backup import verify_backup
 
+from driving_data_platform.common.config import output_root, port
 from driving_data_platform.pipeline import DEFAULT_VERSION, run
 from driving_data_platform.publishing.store import active, connect, publish
 from driving_data_platform.warehouse.baseline import baseline
 
 
 def get(path):
-    with urlopen("http://127.0.0.1:18080" + path, timeout=5) as response:
+    with urlopen(
+        ("http://127.0.0.1:" + str(port("api"))) + path, timeout=5
+    ) as response:
         return json.load(response)
 
 
@@ -78,6 +80,30 @@ def execute(args, root):
         ),
         ("/api/frames?limit=50", 50),
     ]
+    embedding = None
+    production = root / "embedding/production.json"
+    if production.exists() and json.loads(production.read_text()).get("enabled"):
+        from integration_embedding import EmbeddingProbe
+
+        embedding = EmbeddingProbe(root)
+        from verify_backup import fingerprint
+
+        from driving_data_platform.embedding import store as embedding_store
+
+        with embedding_store.connect(root, deployment=embedding.deployment) as conn:
+            original = fingerprint(conn)
+        embedding.run(threading.Event(), report, maximum=len(embedding.queries))
+        with embedding_store.connect(root, deployment=embedding.deployment) as conn:
+            unchanged = original == fingerprint(conn)
+        receipt = embedding.summary() | {"database_unchanged": unchanged}
+        (report / "formal-readonly.json").write_text(json.dumps(receipt, indent=2))
+        (report / "formal-readonly-requests.json").write_text(
+            json.dumps(embedding.samples)
+        )
+        if receipt["status"] != "passed" or not unchanged:
+            raise ValueError("正式图片/文本只读核对失败")
+        embedding.samples.clear()
+        embedding.errors.clear()
     start = time.monotonic()
 
     def client(index):
@@ -142,6 +168,12 @@ def execute(args, root):
 
     before = inspect_container()
     api_before = api_status(root)
+    from embedding_search_resources import inventory
+
+    growth_budget = inventory(root, repo, 8 * 1024**3)
+    (report / "growth-budget.json").write_text(json.dumps(growth_budget, indent=2))
+    if growth_budget["status"] != "passed":
+        raise ValueError("组合验收8GiB增长预留门禁未通过")
     usage_before = usage(root, repo)
     if usage_before["status"] != "passed":
         raise ValueError("项目空间门禁未通过")
@@ -159,6 +191,7 @@ def execute(args, root):
                 resources.append(
                     {
                         "elapsed": time.monotonic() - start,
+                        "model": embedding.resource() if embedding else None,
                         "docker": [
                             item
                             for line in stats.splitlines()
@@ -188,9 +221,10 @@ def execute(args, root):
 
     rounds = []
     failure = None
-    with ThreadPoolExecutor(max_workers=6) as pool:
+    with ThreadPoolExecutor(max_workers=7) as pool:
         futures = [pool.submit(client, index) for index in range(5)]
         sampler = pool.submit(sample)
+        probe = pool.submit(embedding.run, stop, report) if embedding else None
         try:
 
             def ready(loaded):
@@ -238,6 +272,8 @@ def execute(args, root):
             for future in futures:
                 future.result()
             sampler.result()
+            if probe:
+                probe.result()
     after = inspect_container()
     api_after = api_status(root)
     usage_after = usage(root, repo)
@@ -260,6 +296,7 @@ def execute(args, root):
         and all("error" not in r for r in resources)
         and api_before == api_after
         and api_after["running"]
+        and (embedding is None or embedding.summary()["status"] == "passed")
         else "failed",
         "scope": "final-30-minute"
         if args.duration >= 1800 and elapsed >= 1800
@@ -269,6 +306,7 @@ def execute(args, root):
         "failure": failure,
         "duration_seconds": elapsed,
         "virtual_clients": 5,
+        "additional_embedding_client": embedding.summary() if embedding else None,
         "peak_in_flight": state["peak_in_flight"],
         "requests": len(samples),
         "errors": state["errors"],
@@ -306,12 +344,7 @@ def main():
     args = parser.parse_args()
     if args.duration < 20:
         parser.error("最短试运行 20 秒，正式验收至少 1800 秒")
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
+    root = output_root()
     from driving_data_platform.common.operations import operation_lock
 
     try:

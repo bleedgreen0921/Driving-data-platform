@@ -2,10 +2,10 @@
 
 import argparse
 import json
-import os
 import uuid
 from pathlib import Path
 
+from driving_data_platform.common.config import output_root
 from driving_data_platform.warehouse.build import build, verify
 
 
@@ -13,12 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--faults", action="store_true")
     args = parser.parse_args()
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
+    root = output_root()
     repo = Path(__file__).resolve().parents[1]
     reused = build(root, repo)
     if not reused["reused"]:

@@ -1,7 +1,5 @@
 """单次运行的原子报告；运行身份不参与产物身份。"""
 
-import json
-import re
 import signal
 import sys
 import threading
@@ -19,12 +17,9 @@ def now():
 
 
 def show(root, run_id):
-    if not re.fullmatch(r"[a-f0-9]{32}", run_id):
-        raise ValueError("run-id 必须是 32 位十六进制身份")
-    path = root / "reports" / ("pipeline-" + run_id + ".json")
-    if path.is_symlink():
-        raise ValueError("运行报告不得是符号链接")
-    return json.loads(path.read_text())
+    from driving_data_platform.common.run_query import raw_run
+
+    return raw_run(root, run_id)[0]
 
 
 class RunContext:

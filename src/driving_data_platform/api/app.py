@@ -7,6 +7,7 @@ import json
 import os
 import stat
 import zipfile
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -14,16 +15,29 @@ import psycopg
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
 
-from driving_data_platform.common.config import load_config
+from driving_data_platform.common.config import (
+    application_config,
+    output_root,
+)
 from driving_data_platform.publishing.store import active, connect
 
-ROOT = Path(
-    os.environ.get(
-        "DDP_OUTPUT_ROOT", "/Users/qiujiajun/Project/driving-data-platform-artifacts"
-    )
-)
+ROOT = output_root(required=False)
 REPO = Path(__file__).resolve().parents[3]
-app = FastAPI(title="驾驶数据质量与样本筛选", docs_url="/api/docs")
+
+
+@asynccontextmanager
+async def lifespan(application):
+    from driving_data_platform.embedding.web import validate_runtime
+
+    if ROOT is None:
+        raise ValueError(
+            "storage.output_root: configure DDP_OUTPUT_ROOT or DDP_CONFIG before API startup"
+        )
+    validate_runtime(ROOT)
+    yield
+
+
+app = FastAPI(title="驾驶数据质量与样本筛选", docs_url="/api/docs", lifespan=lifespan)
 MAX_ROWS = 100000
 MAX_BYTES = 100 * 1024**2
 
@@ -296,7 +310,7 @@ def media(identity: str, generation_id: str = Query(..., alias="generation")):
     if row is None:
         raise HTTPException(404, "图片登记不存在")
     try:
-        config = load_config(ROOT / "application.yaml")
+        config = application_config(ROOT)
         data = image_bytes(Path(config["dataset"]["root"]), row[0])
     except (OSError, ValueError):
         raise HTTPException(409, "图片不可用：路径、类型、大小或摘要检查失败") from None
@@ -412,3 +426,54 @@ def export(
 @app.get("/")
 def index():
     return FileResponse(REPO / "frontend/index.html")
+
+
+# 证据接口只暴露规范化字段；错误信息不含宿主路径或原始异常。
+def evidence_query(function, *args, **kwargs):
+    from driving_data_platform.common.run_query import EvidenceError
+
+    try:
+        return function(*args, **kwargs)
+    except FileNotFoundError:
+        raise HTTPException(404, "运行或服务版本不存在") from None
+    except EvidenceError as error:
+        raise HTTPException(409, str(error)) from None
+    except ValueError:
+        raise HTTPException(422, "非法查询参数") from None
+    except OSError:
+        raise HTTPException(409, "证据不可安全读取") from None
+
+
+@app.get("/api/runs")
+def runs(
+    status: str | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    from driving_data_platform.common.run_query import list_runs, publication_status
+
+    result = evidence_query(list_runs, ROOT, status or None, limit, offset)
+    result["warnings"].extend(publication_status(ROOT, result["items"]))
+    return result
+
+
+@app.get("/api/runs/{run_id}")
+def run_detail(run_id: str):
+    from driving_data_platform.common.run_query import normalized, publication_status
+
+    result = evidence_query(normalized, ROOT, run_id)
+    result["warnings"] = publication_status(ROOT, [result])
+    return result
+
+
+@app.get("/api/lineage")
+def lineage_query(run_id: str | None = None, generation: str | None = None):
+    from driving_data_platform.lineage import lineage
+
+    return evidence_query(lineage, ROOT, REPO, run_id=run_id, generation=generation)
+
+
+# 独立检索模式不改变默认实例的数据库及既有健康语义。
+from driving_data_platform.embedding import web as embedding_web
+
+app.include_router(embedding_web.router(ROOT))

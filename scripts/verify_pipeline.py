@@ -2,10 +2,10 @@
 
 import argparse
 import json
-import os
 import subprocess
 from pathlib import Path
 
+from driving_data_platform.common.config import output_root
 from driving_data_platform.pipeline import DEFAULT_VERSION, run
 from driving_data_platform.publishing.store import active, connect
 from driving_data_platform.warehouse.catalog import command, materialize
@@ -15,12 +15,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--faults", action="store_true")
     args = parser.parse_args()
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
+    root = output_root()
     repo = Path(__file__).resolve().parents[1]
     first = run(root, repo)
     with connect(root) as conn:

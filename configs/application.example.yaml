@@ -5,5 +5,19 @@ assets:
   evidence_file: null
 storage:
   output_root: null
+  backup_root: null
 postgres:
   dsn: null
+embedding:
+  provider_file: null
+  deployment_artifacts:
+    main: null
+    auxiliary: null
+ports:
+  postgres: 55433
+  api: 18080
+  model: 18090
+  trial: 55434
+  trial_api: 18081
+  restore: 55435
+  diagnostic: 18092

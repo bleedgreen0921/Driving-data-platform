@@ -1,14 +1,1 @@
-{
-  "POSTGRES": {
-    "tag": "postgres:16.15",
-    "image": "mirror.gcr.io/library/postgres@sha256:9e2cf6287f25c3151f4c9421ccce2b17f3e60061c111a29165e0d2cdd9ff0a97",
-    "architecture": "arm64",
-    "size_bytes": 657601046
-  },
-  "SPARK": {
-    "tag": "spark:4.2.0-java21-python3",
-    "image": "spark@sha256:d283f4305f6b307a7b1effce4fce9f6866f4b536b168809ddbaadb6aea793694",
-    "architecture": "arm64",
-    "size_bytes": 2142720318
-  }
-}
+{"POSTGRES":{"architecture":"arm64","image":"sha256:a19e8d2120993690348848e09a58381e6e452e648efa0fad0ecb03320533ff13","size_bytes":660187422,"tag":"ddp-pgvector:pg16.15-vector0.8.7"},"SPARK":{"architecture":"arm64","image":"spark@sha256:d283f4305f6b307a7b1effce4fce9f6866f4b536b168809ddbaadb6aea793694","size_bytes":2142720318,"tag":"spark:4.2.0-java21-python3"}}

@@ -9,6 +9,7 @@ import psycopg
 from psycopg import sql
 from psycopg.types.json import Jsonb
 
+from driving_data_platform.common.config import port
 from driving_data_platform.common.errors import PlatformError
 from driving_data_platform.common.preflight import digest
 from driving_data_platform.warehouse.build import reconcile, rows, verify
@@ -23,7 +24,7 @@ def connect(root: Path, *, database=None):
     )
     return psycopg.connect(
         host="127.0.0.1",
-        port=55433,
+        port=port("postgres"),
         dbname=database or "ddp",
         user="ddp",
         password=env["DDP_POSTGRES_PASSWORD"],
@@ -235,12 +236,17 @@ def load(root: Path, directory: Path, *, fail=False, fail_after_commit=False):
 def publish(root: Path, generation: str, expected: dict, *, rollback=False):
     from driving_data_platform.publishing.difference import difference
 
-    summary = difference(root, generation, expected)
     with connect(root) as conn:
+        validate_active_generation(conn)
         if conn.execute(
             "SELECT status FROM control.generation WHERE generation=%s", (generation,)
         ).fetchone() != ("READY",):
             raise ValueError("只能发布 READY 版本")
+        manifest = conn.execute(
+            "SELECT manifest FROM control.generation WHERE generation=%s", (generation,)
+        ).fetchone()[0]
+        validate_publish_manifest(manifest)
+        summary = difference(root, generation, expected)
         result = conn.execute(
             "UPDATE control.active SET generation=%s,revision=revision+1 WHERE singleton=true AND generation IS NOT DISTINCT FROM %s AND revision=%s RETURNING revision",
             (generation, expected["generation"], expected["revision"]),
@@ -267,3 +273,35 @@ def publish(root: Path, generation: str, expected: dict, *, rollback=False):
         "revision": result[0],
         "difference_report": summary["report"],
     }
+
+
+def validate_publish_manifest(manifest):
+    if not isinstance(manifest, dict) or not all(
+        manifest.get(k)
+        for k in (
+            "catalog",
+            "catalog_contract",
+            "data_contract",
+            "consumer_code_sha256",
+        )
+    ):
+        raise PlatformError(
+            "CONTRACT_CONFLICT",
+            "retired-json-generation",
+            "旧 JSON 或缺少目录契约的版本仅支持只读查询，禁止发布或回滚",
+        )
+
+
+def validate_active_generation(conn):
+    row = conn.execute(
+        "SELECT g.manifest FROM control.active a LEFT JOIN control.generation g ON g.generation=a.generation WHERE a.singleton AND a.generation IS NOT NULL"
+    ).fetchone()
+    if row:
+        try:
+            validate_publish_manifest(row[0])
+        except PlatformError:
+            raise PlatformError(
+                "CONTRACT_CONFLICT",
+                "retired-active-generation",
+                "当前活动版本仍属旧链路；须另行迁移后再加工或发布，未切换指针",
+            ) from None

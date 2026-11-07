@@ -59,7 +59,7 @@ def test_catalog_consume_rejects_path_as_trial(tmp_path):
         check=False,
     )
     assert result.returncode == 2
-    assert "32 位试验 ID" in result.stdout
+    assert "verify metastore" in result.stderr
     assert not (tmp_path / "outside").exists()
 
 
@@ -84,7 +84,7 @@ def test_direct_integration_cannot_bypass_serial_lock(tmp_path):
     assert not (root / "reports").exists()
 
 
-def test_run_show_can_read_legacy_report_while_operation_locked(tmp_path):
+def test_run_show_rejects_legacy_report_without_rewriting(tmp_path):
     import fcntl
 
     root = tmp_path / "artifacts"
@@ -107,5 +107,8 @@ def test_run_show_can_read_legacy_report_while_operation_locked(tmp_path):
             text=True,
             check=False,
         )
-    assert result.returncode == 0
-    assert json.loads(result.stdout) == legacy
+    assert result.returncode == 2
+    assert (
+        json.loads((root / "reports" / ("pipeline-" + run_id + ".json")).read_text())
+        == legacy
+    )

@@ -9,6 +9,7 @@ from pathlib import Path
 
 from psycopg import sql
 
+from driving_data_platform.common.config import output_root, storage_directory
 from driving_data_platform.common.identity import canonical
 from driving_data_platform.ingestion.nuscenes import atomic_json
 from driving_data_platform.publishing.store import connect
@@ -32,9 +33,33 @@ TABLES = {
 }
 
 
+EMBEDDING_TABLES = {
+    "control.embedding_migration": "version,sha256",
+    "control.embedding_environment": "singleton,database_name,test_only_allowed",
+    "control.embedding_space": "space_id,contract,dimension,test_only",
+    "control.embedding_generation": "embedding_generation,generation,space_id,artifact_id,manifest,input_manifest,status,count",
+    "control.embedding_active": "generation,embedding_generation,revision",
+    "control.embedding_publication": "event_id,generation,previous_embedding_generation,embedding_generation,revision,action",
+    "serving.image_embedding": "embedding_generation,generation,space_id,media_id,image_sha256,embedding::text",
+}
+
+
 def fingerprint(conn):
     values = {}
-    for table, columns in TABLES.items():
+    tables = TABLES.copy()
+    if (
+        conn.execute("SELECT to_regclass('control.embedding_generation')").fetchone()[0]
+        is not None
+    ):
+        tables.update(EMBEDDING_TABLES)
+    if (
+        conn.execute("SELECT to_regclass('control.embedding_deployment')").fetchone()[0]
+        is not None
+    ):
+        tables["control.embedding_deployment"] = (
+            "singleton,deployment_id,kind,database_name,database_oid,system_identifier"
+        )
+    for table, columns in tables.items():
         schema, name = table.split(".")
         query = sql.SQL("SELECT {} FROM {}.{}").format(
             sql.SQL(columns), sql.Identifier(schema), sql.Identifier(name)
@@ -50,7 +75,9 @@ def fingerprint(conn):
 
 def verify_backup(root: Path, repo: Path):
     identity = "restore_" + uuid.uuid4().hex
-    destination = root / "backups" / (identity + ".dump")
+    folder = storage_directory(root, "backup")
+    folder.mkdir(parents=True, exist_ok=True)
+    destination = folder / (identity + ".dump")
     command = [
         "docker",
         "compose",
@@ -136,7 +163,9 @@ def verify_metastore_backup(root: Path, repo: Path):
     if memory < int(7.5 * 1024**3):
         raise ValueError("元数据恢复验证资源门禁不通过，需要 Docker VM 至少 7.5 GiB")
     identity = "restore_hms_" + uuid.uuid4().hex
-    destination = root / "backups" / (identity + ".dump")
+    folder = storage_directory(root, "backup")
+    folder.mkdir(parents=True, exist_ok=True)
+    destination = folder / (identity + ".dump")
     base = [*catalog_command(root, repo), "exec", "-T", "postgres"]
     with connect(root, database="ddp_metastore_v410") as conn:
         expected = metastore_fingerprint(conn)
@@ -180,7 +209,7 @@ def verify_metastore_backup(root: Path, repo: Path):
             "SELECT generation,manifest FROM control.generation WHERE generation=(SELECT generation FROM control.active)"
         ).fetchone()
         if not isinstance(manifest.get("catalog_contract"), dict):
-            # 旧 JSON 版本仍可回滚；元数据库恢复验证使用已完成的正式目录版本。
+            # 旧 JSON 版本仅保留只读；元数据库恢复验证使用已完成的正式目录版本。
             reference = conn.execute(
                 "SELECT generation,manifest FROM control.generation WHERE status='READY' AND jsonb_typeof(manifest->'catalog_contract')='object' ORDER BY created_at DESC LIMIT 1"
             ).fetchone()
@@ -237,12 +266,7 @@ def verify_metastore_backup(root: Path, repo: Path):
 
 
 if __name__ == "__main__":
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
+    root = output_root()
     print(
         json.dumps(
             verify_backup(root, Path(__file__).resolve().parents[1]), ensure_ascii=False

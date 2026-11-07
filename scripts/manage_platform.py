@@ -4,27 +4,29 @@ import argparse
 import fcntl
 import json
 import os
-import re
 import subprocess
 import sys
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-from driving_data_platform.common.config import ConfigError, external_path, load_config
+from driving_data_platform.common.config import (
+    ConfigError,
+    application_path,
+    configure_runtime,
+    external_path,
+    load_config,
+)
 from driving_data_platform.common.errors import PlatformError
 from driving_data_platform.common.preflight import TABLES, digest
 from driving_data_platform.common.resources import inspect
 from driving_data_platform.ingestion.nuscenes import ingest
+from driving_data_platform.warehouse.build import DEFAULT_VERSION
 
 REPO = Path(__file__).resolve().parents[1]
-ROOT = Path(
-    os.environ.get(
-        "DDP_OUTPUT_ROOT", "/Users/qiujiajun/Project/driving-data-platform-artifacts"
-    )
-)
-CONFIG = ROOT / "application.yaml"
-ENV = ROOT / "compose.env"
+ROOT = None
+CONFIG = application_path(ROOT) if ROOT else None
+ENV = ROOT / "compose.env" if ROOT else None
 
 
 def compose(*args):
@@ -50,11 +52,12 @@ def prepare():
     if sys.version_info[:2] != (3, 12):
         raise ValueError("必须使用 Python 3.12")
     ROOT.mkdir(parents=True, exist_ok=True)
-    for name in ("warehouse", "reports", "backups"):
+    for name in ("warehouse", "reports"):
         (ROOT / name).mkdir(exist_ok=True)
-    dataset = Path(
-        os.environ.get("DDP_DATASET_ROOT", "/Users/qiujiajun/Project/v1.0-mini")
-    )
+    from driving_data_platform.common.config import storage_directory
+
+    storage_directory(ROOT, "backup").mkdir(parents=True, exist_ok=True)
+    dataset = Path(os.environ.get("DDP_DATASET_ROOT", ""))
     if not CONFIG.exists():
         import yaml
 
@@ -89,6 +92,11 @@ def prepare():
         ENV.write_text(
             f"DDP_POSTGRES_PASSWORD={secrets.token_hex(24)}\nDDP_OUTPUT_ROOT={ROOT}\n"
         )
+        from driving_data_platform.common.config import PORTS, port
+
+        with ENV.open("a") as stream:
+            for name in PORTS:
+                stream.write(f"DDP_{name.upper()}_PORT={port(name)}\n")
         ENV.chmod(0o600)
     return {
         "status": "passed",
@@ -98,6 +106,9 @@ def prepare():
 
 
 def prepare_images():
+    production = ROOT / "embedding/production.json"
+    if production.exists() and json.loads(production.read_text()).get("enabled"):
+        raise ValueError("正式向量已部署，禁止旧镜像准备入口覆盖pgvector镜像锁")
     images = {}
     budget = load_config(REPO / "configs/platform.example.yaml")
     budget["deployment"]["persistence_root"] = str(ROOT)
@@ -151,7 +162,15 @@ def prepare_images():
     return {"status": "passed", "images": images}
 
 
-def verify(selected, faults=False, *, duration=1800, lock_fd=None):
+def verify(
+    selected,
+    faults=False,
+    *,
+    duration=1800,
+    lock_fd=None,
+    embedding_trial=None,
+    embedding_artifact=None,
+):
     directory = (
         ROOT
         / "reports"
@@ -160,6 +179,52 @@ def verify(selected, faults=False, *, duration=1800, lock_fd=None):
     directory.mkdir(parents=True)
     results = []
     commands = {
+        "embedding-external": [
+            sys.executable,
+            "scripts/verify_embedding_external.py",
+            "--trial",
+            embedding_trial or "",
+            "--artifact-id",
+            embedding_artifact or "",
+        ],
+        "embedding-image": [
+            sys.executable,
+            "scripts/verify_embedding_image.py",
+            "--trial",
+            embedding_trial or "",
+            "--artifact-id",
+            embedding_artifact or "",
+            *(["--faults"] if faults else []),
+        ],
+        "embedding-web": [
+            sys.executable,
+            "scripts/verify_embedding_web.py",
+            "--trial",
+            embedding_trial or "",
+            "--artifact-id",
+            embedding_artifact or "",
+            *(["--faults"] if faults else []),
+        ],
+        "embedding-search": [
+            sys.executable,
+            "scripts/verify_embedding_search.py",
+            "--trial",
+            embedding_trial or "",
+            "--artifact-id",
+            embedding_artifact or "",
+            *(["--faults"] if faults else []),
+        ],
+        "embedding": [
+            sys.executable,
+            "scripts/verify_embedding.py",
+            *(["--faults"] if faults else []),
+            *(["--trial", embedding_trial] if embedding_trial else []),
+        ],
+        "observability": [
+            sys.executable,
+            "scripts/verify_observability.py",
+            *(["--faults"] if faults else []),
+        ],
         "evidence": [sys.executable, "scripts/verify_evidence.py"],
         "pipeline": [
             sys.executable,
@@ -200,7 +265,7 @@ def verify(selected, faults=False, *, duration=1800, lock_fd=None):
             *(["--recreate"] if faults else []),
         ],
         "regression": [sys.executable, "-m", "pytest", "-q"],
-        "dependencies": [sys.executable, "-m", "pip", "check"],
+        "dependencies": [sys.executable, "scripts/check_dependencies.py"],
         "preflight": [
             sys.executable,
             "-m",
@@ -273,17 +338,74 @@ def verify(selected, faults=False, *, duration=1800, lock_fd=None):
     return report
 
 
+class SearchArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        from driving_data_platform.common.errors import describe
+
+        print(
+            json.dumps(
+                {
+                    "status": "blocked",
+                    "error": describe(
+                        ValueError(
+                            "多模态图文检索命令参数不合法，请使用 --help 核对参数类型与名称。"
+                        ),
+                        "embedding-search",
+                    ),
+                },
+                ensure_ascii=False,
+            )
+        )
+        self.exit(2)
+
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    global ROOT, CONFIG, ENV
+    bootstrap = argparse.ArgumentParser(add_help=False)
+    for flag in ("--config", "--root", "--dataset-root"):
+        bootstrap.add_argument(flag)
+    early, remaining = bootstrap.parse_known_args()
+    command = remaining[0] if remaining else None
+    parser_type = (
+        SearchArgumentParser
+        if command == "embedding-search"
+        else argparse.ArgumentParser
+    )
+    parser = parser_type(description=__doc__)
     parser.add_argument(
         "command",
         choices=[
+            "embedding-trial",
+            "embedding-space-register",
+            "embedding-search",
+            "embedding-service-up",
+            "embedding-service-stop",
+            "embedding-service-status",
+            "embedding-deploy-final-preflight",
+            "embedding-deploy-rehearse",
+            "embedding-deploy-verify",
+            "embedding-deploy-apply",
+            "embedding-deploy-rollback",
+            "embedding-model-up",
+            "embedding-model-status",
+            "embedding-model-stop",
+            "embedding-evaluate",
+            "embedding-build",
+            "embedding-build-show",
+            "embedding-input",
+            "embedding-prepare",
+            "embedding-migrate",
+            "embedding-load",
+            "embedding-show",
+            "embedding-publish",
+            "embedding-rollback",
+            "diagnose",
             "run-show",
+            "run-list",
+            "lineage",
             "publish-diff",
             "prepare",
             "prepare-images",
-            "hms-register",
-            "hms-consume",
             "hms-validate",
             "hms-prepare",
             "hms-up",
@@ -310,6 +432,12 @@ def main():
         "checks",
         nargs="*",
         choices=[
+            "embedding-external",
+            "embedding-image",
+            "embedding-web",
+            "embedding-search",
+            "embedding",
+            "observability",
             "evidence",
             "pipeline",
             "metastore",
@@ -333,47 +461,141 @@ def main():
         default=1800,
         help="integration 观测秒数，正式验收至少 1800",
     )
-    parser.add_argument("--trial", help="Hive 候选消费的 32 位试验 ID")
+    parser.add_argument("--config", type=Path)
+    parser.add_argument("--root", type=Path)
+    parser.add_argument("--dataset-root", type=Path)
+    parser.add_argument(
+        "--action", choices=["up", "status", "stop", "api-up", "api-status", "api-stop"]
+    )
+    parser.add_argument("--target", choices=["model", "encoding"])
+    parser.add_argument(
+        "--backend", choices=["local_llama", "external_api"], default="local_llama"
+    )
+    parser.add_argument("--space-file", type=Path)
+    parser.add_argument("--target-test-only", action="store_true")
+    parser.add_argument("--trial", help="32 位独立试验 ID")
+    parser.add_argument("--restore-from-database")
+    parser.add_argument("--input-id")
+    parser.add_argument("--space-id")
+    parser.add_argument("--artifact-id")
+    parser.add_argument("--embedding-generation")
+    parser.add_argument("--expected-revision", type=int)
+    parser.add_argument("--deployment")
+    parser.add_argument("--test-database", action="store_true")
+    parser.add_argument("--verify-files", action="store_true")
+    parser.add_argument("--text")
+    parser.add_argument("--location")
+    parser.add_argument("--start")
+    parser.add_argument("--end")
+    parser.add_argument("--category")
+    parser.add_argument("--required-channel", action="append", default=[])
+    parser.add_argument("--image-channel")
     parser.add_argument("--generation")
     parser.add_argument("--against-generation")
     parser.add_argument("--run-id")
-    parser.add_argument("--version", default="warehouse-v4")
+    parser.add_argument("--status")
+    parser.add_argument("--limit", type=int, default=20)
+    parser.add_argument("--offset", type=int, default=0)
+    parser.add_argument("--version", default=DEFAULT_VERSION)
     parser.add_argument(
         "--faults",
         action="store_true",
         help="显式允许提交故障、缺输入与本项目数据库停机/重建验证",
     )
+    # Diagnostics own their arguments; all values are forwarded without shell evaluation.
+    retired = {
+        "hms-register": "verify metastore",
+        "hms-consume": "verify metastore",
+        "embedding-trial-up": "embedding-trial --action up",
+        "embedding-trial-stop": "embedding-trial --action stop",
+        **{
+            "embedding-api-" + a: "embedding-trial --action api-" + a
+            for a in ("up", "status", "stop")
+        },
+    }
+    if command in retired:
+        parser.error("入口已退出，请使用 " + retired[command])
+    if command == "diagnose":
+        from driving_data_platform.embedding.diagnostics import main as diagnose
+
+        forwarded = [
+            item
+            for flag, value in vars(early).items()
+            if value is not None
+            for item in ("--" + flag.replace("_", "-"), value)
+        ]
+        return diagnose([*forwarded, *remaining[1:]])
     args = parser.parse_args()
     validated_root = False
     try:
         if sys.version_info[:2] != (3, 12):
             raise ValueError("必须使用 Python 3.12")
-        resolved_root = external_path(str(ROOT), REPO, "DDP_OUTPUT_ROOT")
-        if ROOT.is_symlink():
-            raise ValueError("产物根不得是符号链接")
-        dataset_value = os.environ.get(
-            "DDP_DATASET_ROOT", "/Users/qiujiajun/Project/v1.0-mini"
+        ROOT = configure_runtime(
+            config=args.config, root=args.root, dataset=args.dataset_root
         )
+        CONFIG = application_path(ROOT)
+        ENV = ROOT / "compose.env"
+        resolved_root = ROOT
+        dataset_value = os.environ.get("DDP_DATASET_ROOT")
         if CONFIG.exists():
             dataset_value = (
                 load_config(CONFIG).get("dataset", {}).get("root", dataset_value)
             )
-        if not isinstance(dataset_value, str):
-            raise ConfigError("数据目录必须是绝对路径")
-        dataset_root = external_path(dataset_value, REPO, "dataset.root")
-        if resolved_root.is_relative_to(dataset_root) or dataset_root.is_relative_to(
-            resolved_root
-        ):
-            raise ValueError("产物目录不得与源数据重叠；未创建任何文件")
+        if dataset_value:
+            dataset_root = external_path(dataset_value, REPO, "dataset.root")
+            if resolved_root.is_relative_to(
+                dataset_root
+            ) or dataset_root.is_relative_to(resolved_root):
+                raise ValueError("产物目录不得与源数据重叠；未创建任何文件")
+        elif args.command in {"prepare", "run", "ods", "build"}:
+            raise ConfigError("dataset.root: set --dataset-root or DDP_DATASET_ROOT")
+        if args.command == "embedding-trial" and (not args.action or not args.trial):
+            raise ConfigError("embedding-trial requires --action and --trial")
+        from driving_data_platform.common.config import resolve_path, storage_directory
+
+        if args.space_file:
+            args.space_file = resolve_path(str(args.space_file))
+        storage_directory(ROOT, "backup")  # validate before all writes
+        os.chdir(REPO)
+        if args.command == "run-show":
+            from driving_data_platform.common.runs import show
+
+            print(json.dumps(show(ROOT, args.run_id or ""), ensure_ascii=False))
+            return 0
+        if args.command in {"run-list", "lineage"}:
+            if args.command == "run-list":
+                from driving_data_platform.common.run_query import (
+                    list_runs,
+                    publication_status,
+                )
+
+                report = list_runs(ROOT, args.status, args.limit, args.offset)
+                report["warnings"].extend(publication_status(ROOT, report["items"]))
+            else:
+                from driving_data_platform.lineage import lineage
+
+                report = lineage(
+                    ROOT, REPO, run_id=args.run_id, generation=args.generation
+                )
+            print(json.dumps(report, ensure_ascii=False))
+            return 0
         validated_root = True
         ROOT.mkdir(parents=True, exist_ok=True)
         with (ROOT / ".operation.lock").open("a") as lock:
-            if args.command not in {"run-show", "publish-diff"}:
+            if args.command not in {
+                "run-show",
+                "publish-diff",
+                "embedding-search",
+                "embedding-show",
+                "embedding-build-show",
+                "embedding-model-status",
+                "embedding-service-status",
+            }:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            if args.command == "run-show":
-                from driving_data_platform.common.runs import show
+            if args.command.startswith("embedding-"):
+                from driving_data_platform.embedding.cli import execute
 
-                report = show(ROOT, args.run_id or "")
+                report = execute(ROOT, REPO, args)
             elif args.command == "publish-diff":
                 from driving_data_platform.publishing.difference import difference
                 from driving_data_platform.publishing.store import active, connect
@@ -387,38 +609,6 @@ def main():
                 report = difference(ROOT, args.generation, expected)
             elif args.command == "prepare":
                 report = prepare()
-            elif args.command in {"hms-register", "hms-consume"}:
-                from driving_data_platform.warehouse.catalog import (
-                    consume,
-                    new_trial,
-                    register,
-                )
-
-                if args.command == "hms-register":
-                    if args.trial:
-                        if not re.fullmatch("[0-9a-f]{32}", args.trial):
-                            raise ValueError("必须使用有效的 32 位试验 ID")
-                        trial = ROOT / "metastore/trials" / args.trial
-                    else:
-                        water = json.loads(
-                            (ROOT / "ingestion/watermark.json").read_text()
-                        )
-                        trial = new_trial(
-                            ROOT,
-                            ROOT
-                            / "warehouse"
-                            / (water["snapshot_id"] + "-" + args.version),
-                        )
-                    receipt = register(ROOT, REPO, trial)
-                    report = {
-                        "status": "passed",
-                        "trial": trial.name,
-                        "catalog": receipt,
-                    }
-                else:
-                    if not args.trial or not re.fullmatch("[0-9a-f]{32}", args.trial):
-                        raise ValueError("必须使用 --trial 指定有效的 32 位试验 ID")
-                    report = consume(ROOT, REPO, ROOT / "metastore/trials" / args.trial)
             elif args.command.startswith("hms-"):
                 action = args.command.removeprefix("hms-")
                 log = (
@@ -452,6 +642,8 @@ def main():
                     args.checks or ["dependencies", "regression", "preflight"],
                     args.faults,
                     duration=args.duration,
+                    embedding_trial=args.trial,
+                    embedding_artifact=args.artifact_id,
                     lock_fd=lock.fileno(),
                 )
             elif args.command in {"init-db", "load", "publish", "rollback"}:
@@ -498,7 +690,11 @@ def main():
             elif args.command in {"api-up", "api-stop"}:
                 from api_process import start, stop
 
-                report = start(ROOT, REPO) if args.command == "api-up" else stop(ROOT)
+                report = (
+                    start(ROOT, REPO, deployment=args.deployment)
+                    if args.command == "api-up"
+                    else stop(ROOT)
+                )
             elif args.command == "build":
                 from driving_data_platform.warehouse.build import build
 

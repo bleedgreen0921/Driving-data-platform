@@ -1,0 +1,9 @@
+{
+  "backend": "local_llama",
+  "endpoint": "http://127.0.0.1:18090",
+  "timeout_seconds": 10,
+  "model_path": null,
+  "projector_path": null,
+  "space": null,
+  "note": "待确认配置；不能作为正式向量空间注册。模型、投影文件和真实连接配置保存在仓库外。"
+}

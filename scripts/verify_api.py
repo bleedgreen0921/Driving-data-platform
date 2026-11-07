@@ -14,9 +14,10 @@ from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+from driving_data_platform.common.config import output_root, port
 from driving_data_platform.warehouse.baseline import baseline
 
-BASE = "http://127.0.0.1:18080"
+BASE = os.environ.get("DDP_API_BASE", ("http://127.0.0.1:" + str(port("api"))))
 
 
 def get(path, expected=200):
@@ -36,12 +37,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--faults", action="store_true")
     args = parser.parse_args()
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
+    root = output_root()
     repo = Path(__file__).resolve().parents[1]
     health = json.loads(get("/api/health"))
     generation = health["generation"]

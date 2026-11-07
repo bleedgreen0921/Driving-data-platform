@@ -9,6 +9,8 @@ from pathlib import Path
 
 from driving_data_platform.common.config import ConfigError, external_path, load_config
 
+PROJECT_DISK_GIB = 64
+MODEL_MIB = 6144
 GIB = 1024**3
 MIB = 1024**2
 MEMORY_FIELDS = (
@@ -16,6 +18,7 @@ MEMORY_FIELDS = (
     "postgres_mib",
     "metastore_mib",
     "api_mib",
+    "model_mib",
     "host_reserve_mib",
 )
 DISK_FIELDS = ("images", "warehouse", "databases", "temporary")
@@ -37,8 +40,8 @@ def evaluate(
     growth = sum(positive(disk, key) for key in DISK_FIELDS) * GIB
     maximum = positive(resources, "max_growth_gib") * GIB
     reserve = positive(resources, "root_reserve_gib") * GIB
-    if maximum > 24 * GIB or reserve < 12 * GIB:
-        raise ConfigError("resource budget: cannot relax 24 GiB growth/12 GiB reserve")
+    if maximum > PROJECT_DISK_GIB * GIB or reserve < 12 * GIB:
+        raise ConfigError("resource budget: cannot relax 64 GiB growth/12 GiB reserve")
     checks = {
         "memory": available_memory >= memory,
         "growth": growth <= maximum,

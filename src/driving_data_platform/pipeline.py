@@ -2,16 +2,21 @@
 
 from pathlib import Path
 
-from driving_data_platform.common.config import load_config
+from driving_data_platform.common.config import (
+    application_config,
+)
 from driving_data_platform.common.contract import load_contract
 from driving_data_platform.common.preflight import digest, preflight
 from driving_data_platform.common.runs import RunContext
 from driving_data_platform.ingestion.nuscenes import PROCESSING_VERSION, ingest
-from driving_data_platform.publishing.store import active, connect, publish
-from driving_data_platform.warehouse.build import build
+from driving_data_platform.publishing.store import (
+    active,
+    connect,
+    publish,
+    validate_active_generation,
+)
+from driving_data_platform.warehouse.build import DEFAULT_VERSION, build
 from driving_data_platform.warehouse.catalog import materialize
-
-DEFAULT_VERSION = "warehouse-v4"
 
 
 def run(
@@ -24,10 +29,11 @@ def run(
             report["data_contract"] = load_contract(repo)
             with connect(root) as conn:
                 expected = active(conn)
+                validate_active_generation(conn)
             item["expected"] = expected
             report["expected_active"] = expected
         with context.step("preflight") as item:
-            config = load_config(root / "application.yaml")
+            config = application_config(root)
             item["result"] = preflight(config, repo)
         with context.step("ods") as item:
             result = ingest(config, repo)

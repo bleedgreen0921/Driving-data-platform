@@ -15,14 +15,14 @@ def budget():
 
 
 def test_exact_boundary(budget):
-    report = evaluate(budget, 15032385536, 36 * GIB, 36 * GIB)
+    report = evaluate(budget, 20 * GIB, 36 * GIB, 36 * GIB)
     assert report["status"] == "passed"
     assert not any(report["shortfall_bytes"].values())
 
 
 @pytest.mark.parametrize("resource", ["memory", "root_disk", "target_disk"])
 def test_shortfall_is_not_hidden(budget, resource):
-    capacities = {"memory": 15032385536, "root_disk": 36 * GIB, "target_disk": 36 * GIB}
+    capacities = {"memory": 20 * GIB, "root_disk": 36 * GIB, "target_disk": 36 * GIB}
     capacities[resource] -= 1
     report = evaluate(budget, *capacities.values())
     assert report["status"] == "blocked"
@@ -37,7 +37,7 @@ def test_unverified_budget_rejected(budget, value):
 
 
 def test_cannot_relax_user_limits(budget):
-    for field, value in [("max_growth_gib", 25), ("root_reserve_gib", 11)]:
+    for field, value in [("max_growth_gib", 65), ("root_reserve_gib", 11)]:
         altered = copy.deepcopy(budget)
         altered["resources"][field] = value
         with pytest.raises(ConfigError):
@@ -49,3 +49,11 @@ def test_cli_missing_evidence_fails_closed(tmp_path, capsys):
     config.write_text("deployment:\n  persistence_root: /not/a/real/directory\n")
     assert main(["--config", str(config)]) == 2
     assert "blocked" in capsys.readouterr().out
+
+
+def test_confirmed_64_gib_cap_is_accepted(budget):
+    budget["resources"]["max_growth_gib"] = 64
+    budget["disk_budget_gib"] = dict(zip(budget["disk_budget_gib"], [16, 16, 16, 16]))
+    report = evaluate(budget, 20 * GIB, 76 * GIB, 76 * GIB)
+    assert report["status"] == "passed"
+    assert report["growth_budget_bytes"] == 64 * GIB

@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import os
 import shutil
 import subprocess
 import threading
@@ -13,6 +12,7 @@ from urllib.request import urlopen
 
 import psycopg
 
+from driving_data_platform.common.config import output_root, port
 from driving_data_platform.ingestion.nuscenes import atomic_json
 from driving_data_platform.publishing.store import active, connect
 from driving_data_platform.warehouse.build import verify
@@ -45,12 +45,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--faults", action="store_true")
     args = parser.parse_args()
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
+    root = output_root()
     repo = Path(__file__).resolve().parents[1]
     report_dir = root / "reports" / ("metastore-" + uuid.uuid4().hex)
     report_dir.mkdir()
@@ -83,7 +78,8 @@ def main():
         source = root / "warehouse" / (generation[0] + "-" + generation[1])
         original = verify(source)
         with urlopen(
-            "http://127.0.0.1:18080/api/frames?generation=" + before["generation"],
+            ("http://127.0.0.1:" + str(port("api")) + "/api/frames?generation=")
+            + before["generation"],
             timeout=5,
         ) as response:
             expected = json.load(response)
@@ -93,7 +89,11 @@ def main():
                 started = time.monotonic()
                 try:
                     with urlopen(
-                        "http://127.0.0.1:18080/api/frames?generation="
+                        (
+                            "http://127.0.0.1:"
+                            + str(port("api"))
+                            + "/api/frames?generation="
+                        )
                         + before["generation"],
                         timeout=5,
                     ) as response:

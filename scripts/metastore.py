@@ -2,13 +2,13 @@
 
 import argparse
 import json
-import os
 import subprocess
 from pathlib import Path
 
 import psycopg
 from metastore_ops import prepare
 
+from driving_data_platform.common.config import output_root
 from driving_data_platform.warehouse.catalog import command
 
 
@@ -16,12 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["prepare", "up", "stop", "validate"])
     args = parser.parse_args()
-    root = Path(
-        os.environ.get(
-            "DDP_OUTPUT_ROOT",
-            "/Users/qiujiajun/Project/driving-data-platform-artifacts",
-        )
-    )
+    root = output_root()
     repo = Path(__file__).resolve().parents[1]
     try:
         if args.action == "prepare":
