@@ -1,0 +1,9 @@
+configs/
+contracts/
+docs/
+v1.0-mini/
+.env
+CHANGE_REQUESTS.md
+infra/
+sql/
+.DS_Store
