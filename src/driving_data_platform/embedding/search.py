@@ -31,6 +31,16 @@ def resolve(root, conn, generation, embedding_generation=None):
     """只解析一次活动指针，并校验数据库、本地空间和选参证据。"""
     identity(generation, r"g_[a-f0-9]{64}")
     store.check_environment(conn, False)
+    capability = conn.execute(
+        "SELECT manifest->'capabilities'->>'original_media' FROM control.generation WHERE generation=%s AND status='READY'",
+        (generation,),
+    ).fetchone()
+    if capability != ("true",):
+        raise PlatformError(
+            "CONTRACT_CONFLICT",
+            "search-no-media",
+            "该业务版本没有已校验的原始媒体，不能建立图片检索",
+        )
     if embedding_generation is None:
         row = conn.execute(
             "SELECT embedding_generation FROM control.embedding_active WHERE generation=%s",

@@ -9,7 +9,6 @@ from pathlib import Path
 import psycopg
 
 from driving_data_platform.common.config import output_root
-from driving_data_platform.pipeline import DEFAULT_VERSION
 from driving_data_platform.publishing.store import active, connect, publish
 from driving_data_platform.warehouse.build import build
 from driving_data_platform.warehouse.catalog import materialize
@@ -20,12 +19,15 @@ def main():
     parser.add_argument("--faults", action="store_true")
     args = parser.parse_args()
     root = output_root()
+    from driving_data_platform.warehouse.build import DEFAULT_VERSION
+
+    default_version = DEFAULT_VERSION
     snapshot = json.loads((root / "ingestion/watermark.json").read_text())[
         "snapshot_id"
     ]
     repo = Path(__file__).resolve().parents[1]
     first = materialize(
-        root, repo, root / "warehouse" / (snapshot + "-" + DEFAULT_VERSION)
+        root, repo, root / "warehouse" / (snapshot + "-" + default_version)
     )
     with connect(root) as conn:
         pointer = active(conn)

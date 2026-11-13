@@ -1,0 +1,18 @@
+{
+  "nocodb": {
+    "image": "sha256:8ef96b49dc0e96990fc94da8aa98efd89ab8ca793eaa8d7ebb12d03fafe19dd2",
+    "architecture": "arm64",
+    "size_bytes": 1249036155,
+    "version": "2026.10.1",
+    "source": "https://hub.docker.com/r/nocodb/nocodb",
+    "source_index_sha256": "sha256:8c2dd06896d95e750d55010e529972c22c1ee73b22dce321b1d2de2e7d5cd6ae"
+  },
+  "redis": {
+    "image": "sha256:c5d34a98396a4775e223c74e929162c35c5a2182901ba26b50ade939941ce14b",
+    "architecture": "arm64",
+    "size_bytes": 58215034,
+    "version": "7.4-alpine",
+    "source": "https://hub.docker.com/_/redis",
+    "source_index_sha256": "sha256:c5d34a98396a4775e223c74e929162c35c5a2182901ba26b50ade939941ce14b"
+  }
+}

@@ -17,9 +17,7 @@ from driving_data_platform.common.config import (
     external_path,
     load_config,
 )
-from driving_data_platform.common.errors import PlatformError
-from driving_data_platform.common.preflight import TABLES, digest
-from driving_data_platform.common.resources import inspect
+from driving_data_platform.common.preflight import TABLES, digest, preflight
 from driving_data_platform.ingestion.nuscenes import ingest
 from driving_data_platform.warehouse.build import DEFAULT_VERSION
 
@@ -75,12 +73,19 @@ def prepare():
                 },
             }
         }
-        evidence["dataset"]["checksums"]["LICENSE"] = digest(dataset / "LICENSE")
+        license_file = dataset / "LICENSE"
+        if license_file.is_file():
+            evidence["dataset"]["checksums"]["LICENSE"] = digest(license_file)
         (ROOT / "asset-evidence.json").write_text(json.dumps(evidence, indent=2))
         CONFIG.write_text(
             yaml.safe_dump(
                 {
-                    "dataset": {"root": str(dataset), "version": "v1.0-mini"},
+                    "dataset": {
+                        "profile": "nuscenes-mini",
+                        "root": str(dataset),
+                        "version": "v1.0-mini",
+                        "assets": {"policy": "strict"},
+                    },
                     "assets": {"evidence_file": str(ROOT / "asset-evidence.json")},
                     "storage": {"output_root": str(ROOT)},
                 }
@@ -110,10 +115,6 @@ def prepare_images():
     if production.exists() and json.loads(production.read_text()).get("enabled"):
         raise ValueError("正式向量已部署，禁止旧镜像准备入口覆盖pgvector镜像锁")
     images = {}
-    budget = load_config(REPO / "configs/platform.example.yaml")
-    budget["deployment"]["persistence_root"] = str(ROOT)
-    if inspect(budget, REPO)["status"] != "passed":
-        raise PlatformError("RESOURCE_BLOCKED", "resource-gate", "资源门禁未通过")
     for key, tag in [
         ("POSTGRES", "postgres:16.15"),
         ("SPARK", "spark:4.2.0-java21-python3"),
@@ -273,6 +274,7 @@ def verify(
             "--config",
             str(CONFIG),
         ],
+        "ods-mirror": [sys.executable, "scripts/verify_ods_mirror.py"],
         "ods-contract": [
             sys.executable,
             "scripts/verify_ods.py",
@@ -381,7 +383,6 @@ def main():
             "embedding-service-up",
             "embedding-service-stop",
             "embedding-service-status",
-            "embedding-deploy-final-preflight",
             "embedding-deploy-rehearse",
             "embedding-deploy-verify",
             "embedding-deploy-apply",
@@ -448,6 +449,7 @@ def main():
             "postgres",
             "repository",
             "ods-contract",
+            "ods-mirror",
             "backup",
             "integration",
             "warehouse",
@@ -593,6 +595,12 @@ def main():
             }:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             if args.command.startswith("embedding-"):
+                from driving_data_platform.common.config import embedding_enabled
+
+                if not embedding_enabled(ROOT):
+                    raise ConfigError(
+                        "embedding.enabled: false; embedding operations disabled"
+                    )
                 from driving_data_platform.embedding.cli import execute
 
                 report = execute(ROOT, REPO, args)
@@ -631,12 +639,9 @@ def main():
             elif args.command == "prepare-images":
                 report = prepare_images()
             elif args.command == "check":
-                budget = load_config(REPO / "configs/platform.example.yaml")
-                budget["deployment"]["persistence_root"] = str(ROOT)
-                report = inspect(budget, REPO)
-                evidence = ROOT / "reports" / ("resource-" + uuid.uuid4().hex + ".json")
-                evidence.parent.mkdir(exist_ok=True)
-                evidence.write_text(json.dumps(report, indent=2))
+                from driving_data_platform.common.config import application_config
+
+                report = preflight(application_config(ROOT), REPO)
             elif args.command == "verify":
                 report = verify(
                     args.checks or ["dependencies", "regression", "preflight"],
@@ -702,13 +707,6 @@ def main():
             elif args.command == "ods":
                 report = ingest(load_config(CONFIG), REPO)
             else:
-                if args.command in {"up", "postgres-up"}:
-                    budget = load_config(REPO / "configs/platform.example.yaml")
-                    budget["deployment"]["persistence_root"] = str(ROOT)
-                    if inspect(budget, REPO)["status"] != "passed":
-                        raise PlatformError(
-                            "RESOURCE_BLOCKED", "resource-gate", "资源门禁未通过"
-                        )
                 if args.command == "stop":
                     from api_process import stop
 

@@ -1,0 +1,51 @@
+name: driving-data-platform-nocodb
+services:
+  nocodb:
+    image: ${DDP_NOCODB_IMAGE:?locked NocoDB image required}
+    env_file: ${DDP_NOCODB_ROOT:?external NocoDB directory required}/application.env
+    ports:
+      - '127.0.0.1:${DDP_NOCODB_PORT:-18082}:8080'
+    volumes:
+      - nocodb-data:/usr/app/data
+    depends_on:
+      nocodb-redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q --tries=1 --spider http://localhost:8080/api/v1/health || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+    networks: [platform]
+  nocodb-worker:
+    image: ${DDP_NOCODB_IMAGE:?locked NocoDB image required}
+    env_file: ${DDP_NOCODB_ROOT:?external NocoDB directory required}/application.env
+    environment:
+      NC_WORKER_CONTAINER: 'true'
+    volumes:
+      - nocodb-data:/usr/app/data
+    depends_on:
+      nocodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [platform]
+  nocodb-redis:
+    image: ${DDP_NOCODB_REDIS_IMAGE:?locked Redis image required}
+    command: [redis-server, --appendonly, 'yes']
+    volumes:
+      - nocodb-redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [platform]
+networks:
+  platform:
+    external: true
+    name: driving-data-platform-mac_default
+volumes:
+  nocodb-data:
+  nocodb-redis-data:

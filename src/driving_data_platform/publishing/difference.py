@@ -97,13 +97,17 @@ def read_version(conn, generation):
         key: manifest.get(key)
         for key in (
             "snapshot_id",
+            "profile_id",
+            "profile_version",
+            "asset_policy",
+            "capabilities",
             "processing_version",
             "schema_version",
             "code",
             "catalog_contract",
+            "data_contract",
         )
     }
-    identity["data_contract"] = manifest.get("data_contract", "legacy_unrecorded")
     identity["manifest_sha256"] = row[2]
     return {
         "generation": generation,

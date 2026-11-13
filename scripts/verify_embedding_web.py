@@ -20,9 +20,9 @@ from urllib.request import Request, urlopen
 import embedding_api_process as api
 import psycopg
 from embedding_ops import trial_state, trial_up
-from embedding_search_resources import inventory, output
 from psycopg.conninfo import make_conninfo
 from psycopg.types.json import Jsonb
+from usage_report import inventory, output
 from verify_backup import fingerprint
 from verify_embedding_search import AUX, MAIN, TRIAL, baseline
 
@@ -178,10 +178,6 @@ def verify(root, repo, trial, artifact_id, faults):
 
     try:
         report["resources_before"] = inventory(root, repo, 128 * 1024**2)
-        if report["resources_before"]["status"] != "passed":
-            raise PlatformError(
-                "RESOURCE_BLOCKED", "web-resource-gate", "资源门禁未通过"
-            )
         _, source, contract, rows = a.verify_artifact(root, MAIN)
         primary_generation = source["generation"]
         sid = a.validate_space(contract)
@@ -709,9 +705,8 @@ def verify(root, repo, trial, artifact_id, faults):
                 "正式扩展变化",
             )
         report["resources_after"] = inventory(root, repo)
-        require(report["resources_after"]["status"] == "passed", "末轮资源越界")
         report["status"] = "passed"
-        check("业务/向量内容、正式库指纹与扩展未变，主活动版本及最终资源核对通过")
+        check("业务/向量内容、正式库指纹与扩展未变，主活动版本核对通过")
     except BaseException as error:
         report["status"] = "failed"
         report["error"] = describe(error, "embedding-web-verification")

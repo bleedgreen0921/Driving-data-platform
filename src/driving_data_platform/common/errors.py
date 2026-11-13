@@ -9,7 +9,6 @@ ADVICE = {
     "INPUT_INVALID": "修正输入、配置或路径后重跑。",
     "CONTRACT_CONFLICT": "核对契约、代码和 schema；变更后使用新处理版本。",
     "DEPENDENCY_UNAVAILABLE": "恢复依赖，核实已提交结果后重跑。",
-    "RESOURCE_BLOCKED": "调整磁盘或内存资源后重跑。",
     "RECONCILIATION_FAILED": "检查独立对账差异，禁止发布。",
     "OPERATION_CONFLICT": "等待当前操作结束后重新执行。",
     "PUBLICATION_CONFLICT": "检查当前活动版本后重新决定，不能自动刷新预期指针。",
@@ -41,7 +40,7 @@ def describe(error, stage=None):
                 "database-unavailable-result-unknown",
             )
         elif isinstance(error, OSError) and error.errno == errno.ENOSPC:
-            category, code = "RESOURCE_BLOCKED", "disk-full"
+            category, code = "DEPENDENCY_UNAVAILABLE", "disk-full"
         elif isinstance(error, (FileNotFoundError, PermissionError, ValueError)):
             category, code = "INPUT_INVALID", "invalid-input"
         elif isinstance(error, subprocess.SubprocessError):

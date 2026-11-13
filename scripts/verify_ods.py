@@ -10,6 +10,7 @@ from driving_data_platform.common.config import (
     application_config,
     output_root,
 )
+from driving_data_platform.common.contract import load_contract_document
 from driving_data_platform.ingestion.nuscenes import (
     IngestionError,
     ingest,
@@ -35,7 +36,7 @@ def main():
     tables = read_tables(Path(config["dataset"]["root"]), config["dataset"]["version"])
     tables["sample"][0]["scene_token"] = "invalid-test-reference"
     try:
-        validate(tables)
+        validate(tables, load_contract_document(repo))
     except IngestionError:
         pass
     else:
@@ -46,6 +47,7 @@ def main():
             trial = copy.deepcopy(config)
             output = root / "experiments" / ("ods-" + uuid.uuid4().hex)
             trial["storage"]["output_root"] = str(output)
+            trial["postgres"] = {"mirror_ods": False}
             try:
                 ingest(trial, repo, fail_at=checkpoint)
             except IngestionError as error:

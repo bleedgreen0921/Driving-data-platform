@@ -13,7 +13,7 @@ from driving_data_platform.common.preflight import digest
 from driving_data_platform.ingestion.nuscenes import atomic_json, verify_snapshot
 from driving_data_platform.warehouse.baseline import baseline
 
-DEFAULT_VERSION = "warehouse-v5"
+DEFAULT_VERSION = "warehouse-v6"
 
 
 def rows(directory: Path, name: str) -> list[dict]:
@@ -98,8 +98,8 @@ def build(
             "INPUT_INVALID", "invalid-ods-source", "ODS 输入必须是正式快照目录"
         )
     input_sha256 = digest(source / "complete.json")
-    contract = load_contract(repo)
     complete = verify_snapshot(source)
+    contract = load_contract(repo)
     code = {
         str(p.relative_to(repo)): digest(p)
         for p in [
@@ -163,6 +163,12 @@ def build(
     counts = reconcile(source, staging)
     manifest = {
         "snapshot_id": complete["snapshot_id"],
+        "ods_processing_version": complete["processing_version"],
+        "profile_id": complete["profile_id"],
+        "profile_version": complete["profile_version"],
+        "asset_policy": complete["asset_policy"],
+        "assets": complete["assets"],
+        "capabilities": complete["capabilities"],
         "processing_version": version,
         "schema_version": "warehouse-schema-v1",
         "input_sha256": input_sha256,

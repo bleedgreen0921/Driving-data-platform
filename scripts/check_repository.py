@@ -87,7 +87,6 @@ def check(repo=REPO):
         "verify.sh",
         "requirements.lock",
         "configs/application.example.yaml",
-        "configs/platform.example.yaml",
     ]
     for path, should_ignore in [(p, False) for p in required] + [
         (".env", True),

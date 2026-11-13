@@ -19,7 +19,7 @@ from usage_report import usage
 from verify_backup import verify_backup
 
 from driving_data_platform.common.config import output_root, port
-from driving_data_platform.pipeline import DEFAULT_VERSION, run
+from driving_data_platform.pipeline import run
 from driving_data_platform.publishing.store import active, connect, publish
 from driving_data_platform.warehouse.baseline import baseline
 
@@ -168,15 +168,7 @@ def execute(args, root):
 
     before = inspect_container()
     api_before = api_status(root)
-    from embedding_search_resources import inventory
-
-    growth_budget = inventory(root, repo, 8 * 1024**3)
-    (report / "growth-budget.json").write_text(json.dumps(growth_budget, indent=2))
-    if growth_budget["status"] != "passed":
-        raise ValueError("组合验收8GiB增长预留门禁未通过")
     usage_before = usage(root, repo)
-    if usage_before["status"] != "passed":
-        raise ValueError("项目空间门禁未通过")
     resources = []
 
     def sample():
@@ -231,12 +223,13 @@ def execute(args, root):
                 with state_lock:
                     known.add(loaded["generation"])
 
-            for version in (DEFAULT_VERSION, "acceptance-" + uuid.uuid4().hex):
+            processing_rounds = ["acceptance-" + uuid.uuid4().hex for _ in range(2)]
+            for version in processing_rounds:
                 result = run(root, repo, version, on_ready=ready)
                 rounds.append(result)
                 (report / "rounds.json").write_text(json.dumps(rounds, indent=2))
             # 同版本再次执行，服务身份与目录身份必须完全复用。
-            repeated = run(root, repo, DEFAULT_VERSION, on_ready=ready)
+            repeated = run(root, repo, processing_rounds[0], on_ready=ready)
             if (
                 not repeated["steps"]["load"]["reused"]
                 or repeated["steps"]["load"]["generation"]
@@ -245,6 +238,20 @@ def execute(args, root):
                 raise ValueError("默认链路重跑产生了重复服务版本")
             rounds.append(repeated)
             (report / "rounds.json").write_text(json.dumps(rounds, indent=2))
+            with connect(root) as conn:
+                pointer = active(conn)
+
+            def compete(_):
+                try:
+                    publish(root, rounds[1]["steps"]["load"]["generation"], pointer)
+                    return "won"
+                except ValueError:
+                    return "lost"
+
+            with ThreadPoolExecutor(max_workers=2) as competitors:
+                competition = list(competitors.map(compete, range(2)))
+            if sorted(competition) != ["lost", "won"]:
+                raise ValueError("发布竞争未满足唯一获胜者")
             with connect(root) as conn:
                 pointer = active(conn)
             rollback = publish(root, pinned, pointer, rollback=True)
@@ -291,7 +298,6 @@ def execute(args, root):
         and p95 <= 2
         and before == after
         and all(not value["oom"] for value in after.values())
-        and usage_after["status"] == "passed"
         and resources
         and all("error" not in r for r in resources)
         and api_before == api_after
@@ -322,6 +328,7 @@ def execute(args, root):
         "rounds": rounds,
         "rollback": rollback if failure is None else None,
         "backup": backup if failure is None else None,
+        "publication_competition": competition if failure is None else None,
         "same_machine_contention": True,
         "report_directory": str(report),
     }

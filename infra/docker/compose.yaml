@@ -10,8 +10,6 @@ services:
       - '127.0.0.1:${DDP_POSTGRES_PORT:-55433}:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    mem_limit: 1g
-    cpus: 1
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ddp -d ddp']
       interval: 2s
@@ -35,8 +33,6 @@ services:
     environment:
       SPARK_LOCAL_IP: 127.0.0.1
       PYTHONPATH: /app/src
-    mem_limit: 3g
-    cpus: 2
     logging:
       driver: json-file
       options: {max-size: '10m', max-file: '3'}

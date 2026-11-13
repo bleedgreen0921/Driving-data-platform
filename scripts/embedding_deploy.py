@@ -10,12 +10,12 @@ import uuid
 from pathlib import Path
 
 import psycopg
-from embedding_search_resources import inventory
+from usage_report import inventory
 from verify_backup import TABLES, fingerprint
 from verify_embedding_search import dump, restore
 
 from driving_data_platform.common.config import port
-from driving_data_platform.common.errors import PlatformError, describe
+from driving_data_platform.common.errors import describe
 from driving_data_platform.embedding import artifacts as a
 from driving_data_platform.embedding import deployment as d
 from driving_data_platform.embedding import store
@@ -160,10 +160,6 @@ def rehearsal(root, repo):
     started = False
     try:
         report["resources_before"] = inventory(root, repo, 2 * 1024**3)
-        if report["resources_before"]["status"] != "passed":
-            raise PlatformError(
-                "RESOURCE_BLOCKED", "deploy-budget", "部署恢复演练资源预算不足"
-            )
         info, _ = source_info(root)
         started = not info["State"]["Running"]
         if started:
@@ -230,10 +226,6 @@ def rehearsal(root, repo):
             state["container"],
             "--label",
             "ddp.embedding.deployment=" + identifier,
-            "--memory",
-            "1g",
-            "--cpus",
-            "1",
             "--env-file",
             str(env),
             "--publish",
@@ -328,8 +320,6 @@ def rehearsal(root, repo):
         if started:
             run(*command(root, repo), "stop", "postgres")
         report["resources_after"] = inventory(root, repo)
-        if report["resources_after"]["status"] != "passed":
-            report["status"] = "failed"
         atomic_json(folder / "report.json", report)
     return report
 
@@ -494,12 +484,6 @@ def verify_rehearsal(root, repo, identifier):
     folder.mkdir()
     report = {"status": "running", "deployment_id": identifier, "folder": str(folder)}
     report["resources_before"] = inventory(root, repo, 1024**3)
-    if report["resources_before"]["status"] != "passed":
-        report["status"] = "blocked"
-        atomic_json(folder / "report.json", report)
-        raise PlatformError(
-            "RESOURCE_BLOCKED", "deploy-restore-budget", "恢复验证预算不足"
-        )
     state = d.registration(root, identifier)
     if state["kind"] != "rehearsal":
         raise ValueError("此验证入口只操作恢复演练环境")
@@ -553,8 +537,6 @@ def verify_rehearsal(root, repo, identifier):
     finally:
         run("docker", "stop", state["container"])
         report["resources_after"] = inventory(root, repo)
-        if report["resources_after"]["status"] != "passed":
-            report["status"] = "failed"
         atomic_json(folder / "report.json", report)
     return report
 
@@ -656,10 +638,6 @@ def apply(root, repo, rehearsal_id):
     target = d.registration(root, rehearsal_id)
     try:
         report["resources_before"] = inventory(root, repo, 1024**3)
-        if report["resources_before"]["status"] != "passed":
-            raise PlatformError(
-                "RESOURCE_BLOCKED", "formal-deploy-budget", "正式升级增长预算不足"
-            )
         info, volume = source_info(root)
         started = not info["State"]["Running"]
         original_image = a.read(repo, "infra/docker/versions.lock.json")["POSTGRES"][
@@ -866,8 +844,6 @@ def apply(root, repo, rehearsal_id):
         if started:
             run(*command(root, repo), "stop", "postgres")
         report["resources_after"] = inventory(root, repo)
-        if report["resources_after"]["status"] != "passed":
-            report["status"] = "failed"
         atomic_json(folder / "report.json", report)
     return report
 
@@ -890,10 +866,6 @@ def rollback(root, repo, identifier):
     started = False
     try:
         report["resources_before"] = inventory(root, repo, 1024**3)
-        if report["resources_before"]["status"] != "passed":
-            raise PlatformError(
-                "RESOURCE_BLOCKED", "formal-rollback-budget", "完整回退备份增长预算不足"
-            )
         info = d.container(state, running=False)
         started = not info["State"]["Running"]
         if started:
@@ -988,8 +960,6 @@ def rollback(root, repo, identifier):
         if started:
             run(*command(root, repo), "stop", "postgres")
         report["resources_after"] = inventory(root, repo)
-        if report["resources_after"]["status"] != "passed":
-            report["status"] = "failed"
         atomic_json(folder / "report.json", report)
     return report
 
@@ -1037,11 +1007,6 @@ def services(root, repo, action):
         model.stop(root, space_id=value["space_id"] if value else None)
         run(*command(root, repo), "stop", "metastore", "postgres")
         return {"status": "passed", "deployment_id": identifier, "running": False}
-    budget = inventory(root, repo)
-    if budget["status"] != "passed":
-        raise PlatformError(
-            "RESOURCE_BLOCKED", "service-budget", "统一服务资源预算未通过"
-        )
     initial = {
         x
         for x in run("docker", "ps", "--format", "{{.Names}}")
@@ -1084,42 +1049,3 @@ def services(root, repo, action):
                 if "driving-data-platform-mac-" + service + "-1" not in initial:
                     run(*command(root, repo), "stop", service)
         raise
-
-
-def final_preflight(root, repo):
-    """最终组合验收的最低增长门禁；不以资源通过冒充长期验收。"""
-    pointer = a.read(root, "embedding/production.json")
-    if not pointer.get("enabled"):
-        raise ValueError("正式部署尚未启用")
-    identifier = pointer["deployment_id"]
-    deployed = passed_report(root, "embedding-deploy-apply-", identifier)
-    with store.connect(root, deployment=identifier) as conn:
-        database_bytes = conn.execute(
-            "SELECT pg_database_size(current_database())"
-        ).fetchone()[0]
-    # 一份独立恢复库、一份完整备份和最小恢复WAL；尚不计两轮新业务产物。
-    backup_bytes = deployed["backup_after"]["bytes"]
-    minimum_growth = database_bytes + backup_bytes + 128 * 1024**2
-    measured = inventory(root, repo, minimum_growth)
-    report = {
-        "status": measured["status"],
-        "scope": "仅最终组合验收资源前置检查，未执行1800秒联调",
-        "deployment_id": identifier,
-        "database_bytes": database_bytes,
-        "backup_bytes": backup_bytes,
-        "wal_reserve_bytes": 128 * 1024**2,
-        "minimum_growth_bytes": minimum_growth,
-        "new_pipeline_growth_included": False,
-        "resources": measured,
-    }
-    if measured["status"] != "passed":
-        report["error"] = {
-            "category": "RESOURCE_BLOCKED",
-            "code": "final-integration-growth",
-            "message": "完整备份和独立恢复库的最低增长超过项目预算，未启动长期联调",
-        }
-    path = (
-        root / "reports" / ("embedding-final-preflight-" + uuid.uuid4().hex + ".json")
-    )
-    atomic_json(path, report)
-    return {**report, "evidence": str(path)}

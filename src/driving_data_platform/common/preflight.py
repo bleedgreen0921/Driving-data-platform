@@ -6,7 +6,7 @@ import json
 import re
 from pathlib import Path
 
-from .config import ConfigError, external_path, load_config, required
+from .config import ConfigError, asset_policy, external_path, load_config, required
 
 TABLES = (
     "scene",
@@ -90,11 +90,12 @@ def preflight(config: dict, repository: Path, task: str = "dataset") -> dict:
     version = required(config, "dataset", "version")
     if Path(version).name != version or version in {".", ".."}:
         raise ConfigError("dataset.version: expected directory name")
+    # 只要求元数据目录；媒体/地图目录由资产策略决定是否必须存在。
+    asset_policy(config)
     files = {f"{version}/{table}.json" for table in TABLES}
-    for directory in (version, "samples", "sweeps", "maps"):
-        path = root / directory
-        if not path.resolve().is_relative_to(root) or not path.is_dir():
-            raise ConfigError("dataset: required directory missing or escaped")
+    path = root / version
+    if not path.resolve().is_relative_to(root) or not path.is_dir():
+        raise ConfigError("dataset: required metadata directory missing or escaped")
     for relative in files:
         path = root / relative
         if not path.resolve().is_relative_to(root):

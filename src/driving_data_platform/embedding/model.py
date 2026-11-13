@@ -2,7 +2,6 @@
 
 import hashlib
 import os
-import shutil
 import signal
 import socket
 import subprocess
@@ -85,20 +84,6 @@ def checked(root, port=None, expected=None):
     port = model_port("model") if port is None else port
     state = a.read(state_path(root, port).parent, f"{port}.json")
     try:
-        rss = (
-            int(
-                subprocess.check_output(
-                    ["ps", "-p", str(state["pid"]), "-o", "rss="], text=True
-                )
-            )
-            * 1024
-        )
-        if rss > 6 * 1024**3:
-            raise PlatformError(
-                "RESOURCE_BLOCKED",
-                "model-memory",
-                "模型 RSS 已超过申报的 6 GiB，停止编码",
-            )
         if process_identity(state["pid"]) != state["process_identity"]:
             raise ValueError("进程启动身份变化")
         if expected and state["space_id"] != expected:
@@ -158,13 +143,6 @@ def up(root, space_id, port=None):
     with socket.socket() as check:
         check.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         check.bind(("127.0.0.1", port))
-    if shutil.disk_usage(root).free < 12 * 1024**3:
-        raise PlatformError("RESOURCE_BLOCKED", "disk-reserve", "磁盘剩余不足 12 GiB")
-    physical = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"]))
-    if physical < (3072 + 1024 + 1536 + 512 + 8192 + 6144) * 1024**2:
-        raise PlatformError(
-            "RESOURCE_BLOCKED", "model-memory", "包含模型 6 GiB 的内存预算不足"
-        )
     params = contract["runtime_parameters"]
     command = [
         registered["binary"]["path"],

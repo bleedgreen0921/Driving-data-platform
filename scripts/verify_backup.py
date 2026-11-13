@@ -59,6 +59,14 @@ def fingerprint(conn):
         tables["control.embedding_deployment"] = (
             "singleton,deployment_id,kind,database_name,database_oid,system_identifier"
         )
+    if conn.execute("SELECT to_regclass('ods.snapshot')").fetchone()[0] is not None:
+        for (name,) in conn.execute(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema='ods' ORDER BY table_name"
+        ):
+            # JSON conversion includes every expanded field, preserving integer microseconds.
+            tables["ods." + name] = (
+                "to_jsonb(" + sql.Identifier(name).as_string(conn) + ")"
+            )
     for table, columns in tables.items():
         schema, name = table.split(".")
         query = sql.SQL("SELECT {} FROM {}.{}").format(
@@ -156,12 +164,6 @@ def metastore_fingerprint(conn):
 
 
 def verify_metastore_backup(root: Path, repo: Path):
-    # 同时保留正常 HMS 与只读恢复验证 HMS，为 Docker VM 留至少 1 GiB。
-    memory = int(
-        subprocess.check_output(["docker", "info", "--format", "{{.MemTotal}}"])
-    )
-    if memory < int(7.5 * 1024**3):
-        raise ValueError("元数据恢复验证资源门禁不通过，需要 Docker VM 至少 7.5 GiB")
     identity = "restore_hms_" + uuid.uuid4().hex
     folder = storage_directory(root, "backup")
     folder.mkdir(parents=True, exist_ok=True)
@@ -209,13 +211,7 @@ def verify_metastore_backup(root: Path, repo: Path):
             "SELECT generation,manifest FROM control.generation WHERE generation=(SELECT generation FROM control.active)"
         ).fetchone()
         if not isinstance(manifest.get("catalog_contract"), dict):
-            # 旧 JSON 版本仅保留只读；元数据库恢复验证使用已完成的正式目录版本。
-            reference = conn.execute(
-                "SELECT generation,manifest FROM control.generation WHERE status='READY' AND jsonb_typeof(manifest->'catalog_contract')='object' ORDER BY created_at DESC LIMIT 1"
-            ).fetchone()
-            if reference is None:
-                raise ValueError("没有可用于元数据恢复验证的正式目录版本")
-            reference_generation, manifest = reference
+            raise TypeError("活动版本缺少目录契约，不能执行元数据恢复验证")
     catalog_id = manifest["catalog"]["database"].removeprefix("ddp_hms_")
     request = json.loads(
         (root / "metastore/generations" / catalog_id / "request.json").read_text()

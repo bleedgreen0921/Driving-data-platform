@@ -13,9 +13,9 @@ from driving_data_platform.publishing.difference import compare_values, delta
 
 def test_contract_canonical_and_unknown_version(tmp_path):
     repo = Path(__file__).resolve().parents[1]
-    value = json.loads((repo / "contracts/nuscenes-mini-v1.json").read_text())
+    value = json.loads((repo / "contracts/nuscenes-mini-v2.json").read_text())
     (tmp_path / "contracts").mkdir()
-    path = tmp_path / "contracts/nuscenes-mini-v1.json"
+    path = tmp_path / "contracts/nuscenes-mini-v2.json"
     path.write_text(json.dumps(value))
     assert load_contract(tmp_path) == load_contract(repo)
     value["version"] = "unknown"

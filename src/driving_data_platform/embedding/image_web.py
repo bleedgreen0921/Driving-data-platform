@@ -55,7 +55,7 @@ def finish(path, report, error=None, result=None):
     except OSError:
         return web.error_response(
             PlatformError(
-                "RESOURCE_BLOCKED", "search-report-unavailable", "报告不可写"
+                "DEPENDENCY_UNAVAILABLE", "search-report-unavailable", "报告不可写"
             ),
             report["request_id"],
         )

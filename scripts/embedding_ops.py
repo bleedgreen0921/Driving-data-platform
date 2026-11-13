@@ -16,13 +16,6 @@ SOURCE = f"https://codeload.github.com/pgvector/pgvector/tar.gz/refs/tags/v{VERS
 
 
 def prepare(root, repo):
-    from driving_data_platform.common.config import load_config
-    from driving_data_platform.common.resources import inspect
-
-    budget = load_config(repo / "configs/platform.example.yaml")
-    budget["deployment"]["persistence_root"] = str(root)
-    if inspect(budget, repo)["status"] != "passed":
-        raise ValueError("资源门禁未通过，禁止构建隔离镜像")
     base = json.loads((repo / "infra/docker/versions.lock.json").read_text())[
         "POSTGRES"
     ]
@@ -118,18 +111,10 @@ def trial_up(root, repo, trial):
 
     import psycopg
 
-    from driving_data_platform.common.config import load_config
-    from driving_data_platform.common.resources import inspect
     from driving_data_platform.common.run_query import identity
     from driving_data_platform.embedding.artifacts import read
 
     identity(trial)
-    budget = load_config(repo / "configs/platform.example.yaml")
-    budget["deployment"]["persistence_root"] = str(root)
-    # 隔离库额外限额 1 GiB，不能借用现有组件的预算。
-    budget["resources"]["postgres_mib"] += 1024
-    if inspect(budget, repo)["status"] != "passed":
-        raise ValueError("隔离库资源门禁未通过")
     runtime = read(repo, "infra/embedding/runtime.lock.json")
     if (
         runtime["version"] != VERSION
@@ -196,10 +181,6 @@ def trial_up(root, repo, trial):
                 name,
                 "--label",
                 "ddp.embedding.trial=" + trial,
-                "--memory",
-                "1g",
-                "--cpus",
-                "1",
                 "--env-file",
                 str(env),
                 "--publish",

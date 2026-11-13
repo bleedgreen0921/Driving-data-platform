@@ -8,7 +8,7 @@ from driving_data_platform.common.config import (
 from driving_data_platform.common.contract import load_contract
 from driving_data_platform.common.preflight import digest, preflight
 from driving_data_platform.common.runs import RunContext
-from driving_data_platform.ingestion.nuscenes import PROCESSING_VERSION, ingest
+from driving_data_platform.ingestion.nuscenes import ingest
 from driving_data_platform.publishing.store import (
     active,
     connect,
@@ -40,7 +40,7 @@ def run(
             source = (
                 root
                 / "ingestion/snapshots"
-                / (result["snapshot_id"] + "-" + PROCESSING_VERSION)
+                / (result["snapshot_id"] + "-" + result["processing_version"])
             )
             item.update(
                 result=result,

@@ -101,7 +101,6 @@ def error_response(error, request_id):
         "INPUT_INVALID": 422,
         "CONTRACT_CONFLICT": 409,
         "DEPENDENCY_UNAVAILABLE": 503,
-        "RESOURCE_BLOCKED": 503,
         "OPERATION_CONFLICT": 429,
     }.get(category, 500)
     if code == "search-not-found":
@@ -125,7 +124,7 @@ def error_response(error, request_id):
         )
     elif isinstance(error, OSError):
         status = 503
-        value.update(category="RESOURCE_BLOCKED", code="search-resource-unavailable")
+        value.update(category="DEPENDENCY_UNAVAILABLE", code="search-local-io")
     value["advice"] = ADVICE[value["category"]]
     messages = {
         422: "检索输入不合法，请检查文本、图片、时间和筛选条件。",
@@ -267,7 +266,7 @@ def recorded(root, request_id, body, parse_error=None, summary=None, locked=Fals
     except OSError:
         return error_response(
             PlatformError(
-                "RESOURCE_BLOCKED", "search-report-unavailable", "报告不可写"
+                "DEPENDENCY_UNAVAILABLE", "search-report-unavailable", "报告不可写"
             ),
             request_id,
         )
@@ -369,6 +368,12 @@ def router(root):
                         return {
                             "enabled": True,
                             "status": "no_data",
+                            "generation": generation,
+                        }
+                    if error.code == "search-no-media":
+                        return {
+                            "enabled": True,
+                            "status": "no_media",
                             "generation": generation,
                         }
                     raise

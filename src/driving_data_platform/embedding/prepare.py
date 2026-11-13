@@ -25,11 +25,6 @@ def execute(root):
     with socket.socket() as check:
         check.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         check.bind(("127.0.0.1", port("diagnostic")))
-    physical = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"]))
-    if physical < 20 * 1024**3:
-        raise PlatformError(
-            "RESOURCE_BLOCKED", "memory-budget", "模型与组件的 20 GiB 静态内存预算不足"
-        )
     command = [
         registered["binary"]["path"],
         "-m",

@@ -6,6 +6,7 @@ services:
     environment:
       DDP_HMS_PASSWORD: ${DDP_HMS_PASSWORD:?required}
       DDP_HMS_DATABASE: ${DDP_HMS_DATABASE:-ddp_metastore_v410}
+      DDP_HMS_DB_POOL_SIZE: ${DDP_HMS_DB_POOL_SIZE:-10}
     volumes:
       - ../metastore/start.sh:/app/start.sh:ro
       - ${DDP_OUTPUT_ROOT}/metastore/dependencies/postgresql.jar:/opt/hive/lib/postgresql.jar:ro
@@ -14,8 +15,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    mem_limit: 1536m
-    cpus: 1
     healthcheck:
       test: [CMD, /bin/bash, -c, 'exec 3<>/dev/tcp/127.0.0.1/9083']
       interval: 3s
@@ -32,7 +31,6 @@ services:
     environment:
       DDP_HMS_DATABASE: ${DDP_HMS_RESTORE_DATABASE:-unused_restore_database}
       DDP_HMS_HEAP_MIB: '512'
-    mem_limit: 1g
   spark-catalog:
     image: ${DDP_HMS_SPARK_IMAGE:?prepare metastore first}
     profiles: [batch]
@@ -48,8 +46,6 @@ services:
       - ${DDP_OUTPUT_ROOT}/metastore/generations:/exchange/generations
       - metastore-catalog:/catalog
       - ../../src:/app/src:ro
-    mem_limit: 3g
-    cpus: 2
     logging:
       driver: json-file
       options: {max-size: '10m', max-file: '3'}

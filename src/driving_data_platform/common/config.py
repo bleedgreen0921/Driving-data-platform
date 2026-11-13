@@ -231,3 +231,19 @@ def storage_directory(root, name):
         if result.is_relative_to(source) or source.is_relative_to(result):
             raise ConfigError("backup directory must not overlap dataset")
     return result
+
+
+def asset_policy(config):
+    policy = config.get("dataset", {}).get("assets", {}).get("policy", "strict")
+    if policy not in {"strict", "registered"}:
+        raise ConfigError("dataset.assets.policy: expected strict or registered")
+    return policy
+
+
+def embedding_enabled(root):
+    path = application_path(root)
+    return (
+        not path.exists()
+        or application_config(root).get("embedding", {}).get("enabled", True)
+        is not False
+    )

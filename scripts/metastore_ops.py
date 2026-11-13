@@ -10,25 +10,11 @@ from pathlib import Path
 from psycopg import sql
 
 from driving_data_platform.common.preflight import digest
-from driving_data_platform.common.resources import PROJECT_DISK_GIB
 from driving_data_platform.publishing.store import connect
 from driving_data_platform.warehouse.catalog import check_image, command
 
 
 def prepare(root: Path, repo: Path):
-    from usage_report import usage
-
-    from driving_data_platform.common.config import load_config
-    from driving_data_platform.common.resources import inspect
-
-    budget = load_config(repo / "configs/platform.example.yaml")
-    budget["deployment"]["persistence_root"] = str(root)
-    if (
-        inspect(budget, repo)["status"] != "passed"
-        or usage(root, repo)["project_bytes_conservative"] + 2 * 1024**3
-        > PROJECT_DISK_GIB * 1024**3
-    ):
-        raise ValueError("元数据候选资源门禁不通过")
     base = root / "metastore"
     (base / "dependencies").mkdir(parents=True, exist_ok=True)
     (base / "trials").mkdir(exist_ok=True)
@@ -44,6 +30,12 @@ def prepare(root: Path, repo: Path):
         ["docker", "buildx", "imagetools", "inspect", "apache/hive:4.1.0", "--raw"]
     )
     expected = "sha256:" + hashlib.sha256(upstream).hexdigest()
+    native = next(
+        item
+        for item in json.loads(upstream)["manifests"]
+        if item.get("platform", {}).get("architecture") == "arm64"
+        and item["platform"]["os"] == "linux"
+    )
     if not any(ref.endswith("@" + expected) for ref in info["RepoDigests"]):
         raise ValueError("Hive 镜像与官方清单摘要不一致")
     hive = next(ref for ref in info["RepoDigests"] if ref.endswith("@" + expected))
@@ -82,6 +74,11 @@ def prepare(root: Path, repo: Path):
     )
     if hashlib.sha1(jar.read_bytes()).hexdigest() != expected_jdbc:
         raise ValueError("JDBC 缓存摘要不符，不自动覆盖")
+    locked_jdbc = json.loads((repo / "infra/metastore/runtime.lock.json").read_text())[
+        "jdbc"
+    ]
+    if digest(jar) != locked_jdbc["sha256"]:
+        raise ValueError("JDBC 与项目锁定 SHA-256 不一致")
     spark = json.loads((repo / "infra/docker/versions.lock.json").read_text())["SPARK"][
         "image"
     ]
@@ -156,6 +153,8 @@ def prepare(root: Path, repo: Path):
             "size_bytes": info["Size"],
             "architecture": info["Architecture"],
             "source": "https://hub.docker.com/r/apache/hive",
+            "source_index_sha256": expected,
+            "native_manifest_sha256": native["digest"],
             "license": "Apache-2.0",
         },
         "spark_client": {

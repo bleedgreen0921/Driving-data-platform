@@ -46,10 +46,6 @@ def _execute(root, repo, args):
         if args.action == "api-stop":
             return embedding_api_process.stop(root, args.trial)
         return embedding_api_process.status(root, args.trial)
-    if args.command == "embedding-deploy-final-preflight":
-        from embedding_deploy import final_preflight
-
-        return final_preflight(root, repo)
     if args.command.startswith("embedding-service-"):
         from embedding_deploy import services
 

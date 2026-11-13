@@ -1,6 +1,9 @@
 dataset:
+  profile: nuscenes-mini
   root: null
   version: v1.0-mini
+  assets:
+    policy: strict # strict or registered
 assets:
   evidence_file: null
 storage:
@@ -8,7 +11,9 @@ storage:
   backup_root: null
 postgres:
   dsn: null
+  mirror_ods: false
 embedding:
+  enabled: true # false when only structured metadata is available
   provider_file: null
   deployment_artifacts:
     main: null

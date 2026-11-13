@@ -185,9 +185,9 @@ def execute(root, input_id, space_id):
             except (OSError, ValueError) as error:
                 item.update(status="failed", error=describe(error, "embedding-build"))
                 report["failed"] += 1
-                if isinstance(error, PlatformError) and error.category in (
-                    "CONTRACT_CONFLICT",
-                    "RESOURCE_BLOCKED",
+                if (
+                    isinstance(error, PlatformError)
+                    and error.category == "CONTRACT_CONFLICT"
                 ):
                     blocked = item["error"]
                 elif (

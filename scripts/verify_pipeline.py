@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 
 from driving_data_platform.common.config import output_root
-from driving_data_platform.pipeline import DEFAULT_VERSION, run
+from driving_data_platform.pipeline import run
 from driving_data_platform.publishing.store import active, connect
 from driving_data_platform.warehouse.catalog import command, materialize
 
@@ -16,6 +16,9 @@ def main():
     parser.add_argument("--faults", action="store_true")
     args = parser.parse_args()
     root = output_root()
+    from driving_data_platform.warehouse.build import DEFAULT_VERSION
+
+    default_version = DEFAULT_VERSION
     repo = Path(__file__).resolve().parents[1]
     first = run(root, repo)
     with connect(root) as conn:
@@ -37,7 +40,7 @@ def main():
     blocked = []
     if args.faults:
         water = json.loads((root / "ingestion/watermark.json").read_text())
-        source = root / "warehouse" / (water["snapshot_id"] + "-" + DEFAULT_VERSION)
+        source = root / "warehouse" / (water["snapshot_id"] + "-" + default_version)
         try:
             subprocess.run([*command(root, repo), "stop", "metastore"], check=True)
             for name, action in [

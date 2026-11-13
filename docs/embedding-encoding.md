@@ -42,6 +42,6 @@ SIGTERM / Ctrl-C 会保存 interrupted 报告；已逐张同步落盘的缓存�
 
 验证证据在 `reports/encoding-recovery-<id>/`。故障轮次验证坏图无请求、正常恢复、单图失败继续、缓存损坏、SIGTERM、提交前后重复执行和停服后受阻扫描；真实 SIGSTOP 使用显式短超时验证连续三次失败后的健康核对与受阻。服务恢复后再进行完整清单加工。停服故障必须提供 `reused=false` 且 PID/启动身份匹配的本轮启动回执；拒绝停止原本运行的服务。验证不管理其他模型服务，不清理缓存或既有产物。测试结束由操作者按开始时状态停止本轮启动服务。
 
-资源预算上限为 64 GiB 磁盘与至少 12 GiB 空闲预留；模型另申报 6 GiB 宿主内存，不能从磁盘预算推导内存容量。RSS 门禁不是 GPU/统一内存峰值保证。原始权重仅逐个登记到 `embedding/model-source-files.json`，usage 连同工具环境和内容缓存计量，按设备/inode 去重，不扫描全部共享模型缓存。Docker 不在线时，usage 不能给出当前 Docker 占用核验，不以历史数字冒充本轮真实盘点。本轮不替代全套服务同时在线验收。
+原始权重逐个登记到 `embedding/model-source-files.json`，usage 连同工具环境和内容缓存计量，按设备/inode 去重，不扫描全部共享模型缓存。Docker 不在线时，usage 不能给出当前 Docker 占用核验，不以历史数字冒充本轮真实盘点。本轮不替代全套服务同时在线验收。
 
 外部 model.json 中 binary/model/projector 的 path 可使用相对该登记文件目录的路径或部署机绝对路径；仍核对真实文件、仓库外位置和文件摘要。外部后端不需要这些本地文件，见[后端说明](embedding-backends.md)。

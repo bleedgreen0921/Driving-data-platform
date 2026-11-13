@@ -130,14 +130,20 @@ def main():
     ):
         raise ValueError("标注不一致")
     pictures = 0
+    unavailable = 0
+    original_media = health.get("capabilities", {}).get("original_media") is True
     for media in detail["media"]:
-        if media["modality"] == "camera":
+        if not original_media:
+            get("/api/media/" + media["entity_id"] + "?generation=" + generation, 409)
+            unavailable += 1
+        elif media["modality"] == "camera":
             picture = get(
                 "/api/media/" + media["entity_id"] + "?generation=" + generation
             )
             if hashlib.sha256(picture).hexdigest() != media["sha256"]:
                 raise ValueError("真实图片摘要不一致")
             pictures += 1
+    get("/api/media/does-not-exist?generation=" + generation, 404)
     analytics = json.loads(get("/api/analytics?generation=" + generation))
     if analytics["dimensions"]["metrics"] != expected["metrics"] or sorted(
         analytics["statistics"], key=lambda r: (r["dimension"], r["value"])
@@ -189,6 +195,7 @@ def main():
                 "frames": len(ordered),
                 "filter_cases": len(cases),
                 "pictures": pictures,
+                "unverified_media_disabled": unavailable,
                 "exports": ["jsonl", "csv"],
                 "dependency_outage_restored": outage,
             }

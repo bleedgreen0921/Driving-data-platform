@@ -1,5 +1,5 @@
 {
-  "source_image": "apache/hive@sha256:b957bb0e698e560d24e162b7549d79f191d58703e92899a886618c317f6e8f30",
+  "source_image": "mirror.gcr.io/apache/hive@sha256:b957bb0e698e560d24e162b7549d79f191d58703e92899a886618c317f6e8f30",
   "license_basis": "\u539f\u59cb JAR \u5185 META-INF LICENSE/NOTICE \u53ca Hive \u5206\u53d1\u5305 LICENSE/NOTICE",
   "jars": [
     {

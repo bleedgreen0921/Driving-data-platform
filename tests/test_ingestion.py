@@ -3,7 +3,9 @@ from pathlib import Path
 
 import pytest
 
+from driving_data_platform.common.contract import load_contract_document
 from driving_data_platform.common.identity import entity_id
+from driving_data_platform.core.model import AssetPolicy
 from driving_data_platform.ingestion import nuscenes
 
 
@@ -56,7 +58,9 @@ def test_quality_gate(source, failure):
     else:
         tables["sample_data"][0]["is_key_frame"] = False
     with pytest.raises(nuscenes.IngestionError):
-        nuscenes.validate(tables)
+        nuscenes.validate(
+            tables, load_contract_document(Path(__file__).resolve().parents[1])
+        )
 
 
 @pytest.mark.parametrize(
@@ -68,7 +72,12 @@ def test_media_failure_no_watermark(source, filename):
     # Exercise inventory independently of evidence: changing source JSON would
     # correctly fail preflight first.
     with pytest.raises(nuscenes.IngestionError):
-        nuscenes.inventory(Path(config["dataset"]["root"]), "v1.0-mini", tables)
+        nuscenes.inventory(
+            Path(config["dataset"]["root"]),
+            "v1.0-mini",
+            tables,
+            AssetPolicy.STRICT,
+        )
     (Path(config["dataset"]["root"]) / "samples/image.jpg").unlink()
     with pytest.raises(nuscenes.IngestionError):
         nuscenes.ingest(config, repo)
@@ -159,17 +168,17 @@ def test_concurrent_runs_commit_one_snapshot(source):
 
 
 def test_deployment_fields_do_not_change_snapshot_identity(source):
-    from driving_data_platform.common.config import load_config
-
     repo, config, _ = source
     original = nuscenes.ingest(config, repo)
     snapshot = (
         Path(config["storage"]["output_root"])
         / "ingestion/snapshots"
-        / f"{original['snapshot_id']}-nuscenes-ods-v1"
+        / f"{original['snapshot_id']}-nuscenes-ods-v2"
     )
     manifest = (snapshot / "complete.json").read_bytes()
-    config.update(load_config(Path("configs/platform.example.yaml"), {}))
+    config["postgres"] = {"mirror_ods": False}
+    config["embedding"] = {"enabled": False}
+    config["ports"] = {"api": 18080}
     repeated = nuscenes.ingest(config, repo)
     assert repeated["reused"] is True
     assert repeated["snapshot_id"] == original["snapshot_id"]

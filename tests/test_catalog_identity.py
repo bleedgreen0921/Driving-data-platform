@@ -44,8 +44,8 @@ def identity_files(tmp_path):
     )
     (repo / "contracts").mkdir()
     shutil.copy(
-        Path(__file__).resolve().parents[1] / "contracts/nuscenes-mini-v1.json",
-        repo / "contracts/nuscenes-mini-v1.json",
+        Path(__file__).resolve().parents[1] / "contracts/nuscenes-mini-v2.json",
+        repo / "contracts/nuscenes-mini-v2.json",
     )
     manifest = json.loads((source / "complete.json").read_text())
     manifest["data_contract"] = load_contract(repo)

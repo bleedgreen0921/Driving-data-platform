@@ -47,7 +47,13 @@ def active(conn):
 def load(root: Path, directory: Path, *, fail=False, fail_after_commit=False):
     manifest = verify(directory)
     source = (
-        root / "ingestion/snapshots" / (manifest["snapshot_id"] + "-nuscenes-ods-v1")
+        root
+        / "ingestion/snapshots"
+        / (
+            manifest["snapshot_id"]
+            + "-"
+            + manifest.get("ods_processing_version", "nuscenes-ods-v2")
+        )
     )
     if digest(source / "complete.json") != manifest["input_sha256"]:
         raise ValueError("装载输入摘要不匹配")
@@ -138,9 +144,11 @@ def load(root: Path, directory: Path, *, fail=False, fail_after_commit=False):
                     entries = []
                     for row in values:
                         if table == "media":
+                            asset = files[row["path"]]
                             row = row | {
-                                "bytes": files[row["path"]]["bytes"],
-                                "sha256": files[row["path"]]["sha256"],
+                                "asset_state": asset["state"],
+                                "bytes": asset.get("bytes"),
+                                "sha256": asset.get("sha256"),
                             }
                         entries.append(
                             (
@@ -276,19 +284,22 @@ def publish(root: Path, generation: str, expected: dict, *, rollback=False):
 
 
 def validate_publish_manifest(manifest):
-    if not isinstance(manifest, dict) or not all(
-        manifest.get(k)
-        for k in (
-            "catalog",
-            "catalog_contract",
-            "data_contract",
-            "consumer_code_sha256",
-        )
-    ):
+    required = (
+        "profile_id",
+        "profile_version",
+        "asset_policy",
+        "assets",
+        "capabilities",
+        "catalog",
+        "catalog_contract",
+        "data_contract",
+        "consumer_code_sha256",
+    )
+    if not isinstance(manifest, dict) or not all(manifest.get(k) for k in required):
         raise PlatformError(
             "CONTRACT_CONFLICT",
-            "retired-json-generation",
-            "旧 JSON 或缺少目录契约的版本仅支持只读查询，禁止发布或回滚",
+            "incomplete-generation-manifest",
+            "版本清单缺少能力、资产策略或目录契约，禁止发布或回滚",
         )
 
 
@@ -302,6 +313,6 @@ def validate_active_generation(conn):
         except PlatformError:
             raise PlatformError(
                 "CONTRACT_CONFLICT",
-                "retired-active-generation",
-                "当前活动版本仍属旧链路；须另行迁移后再加工或发布，未切换指针",
+                "incomplete-active-generation",
+                "当前活动版本缺少能力或目录契约；须重新加工后再发布，未切换指针",
             ) from None

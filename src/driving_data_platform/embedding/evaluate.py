@@ -215,9 +215,6 @@ def execute(root, input_id, *, space_id=None):
                     and score >= 0.8
                     and cosine(texts[0], texts[1]) > cosine(texts[0], texts[2]),
                 }
-                if result["rss_peak_sampled"] > 6 * 1024**3:
-                    result["passed"] = False
-                    result["resource_blocked"] = True
                 report["candidates"].append(result)
                 atomic_json(path, report)
             finally:

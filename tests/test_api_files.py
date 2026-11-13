@@ -52,3 +52,33 @@ def test_export_limits_and_manifest(monkeypatch):
     with pytest.raises(HTTPException) as error:
         api.export_bundle([item], meta, {}, "jsonl")
     assert error.value.status_code == 413
+
+
+def test_csv_metadata_scope_and_generation_are_exported():
+    import csv
+
+    meta = {
+        "generation": "g_test",
+        "snapshot_id": "source",
+        "processing_version": "warehouse-v6",
+        "profile_id": "nuscenes-mini",
+        "profile_version": "2",
+        "asset_policy": "registered",
+        "capabilities": {"original_media": False, "image_search": False},
+    }
+    bundle = api.export_bundle([{"entity_id": "frame"}], meta, {}, "csv")
+    with zipfile.ZipFile(io.BytesIO(bundle)) as archive:
+        rows = list(csv.DictReader(io.StringIO(archive.read("frames.csv").decode())))
+        manifest = json.loads(archive.read("manifest.json"))
+    for key in (
+        "generation",
+        "snapshot_id",
+        "processing_version",
+        "profile_id",
+        "profile_version",
+        "asset_policy",
+    ):
+        assert rows[0][key] == meta[key]
+        assert manifest[key] == meta[key]
+    assert rows[0]["original_media"] == "False"
+    assert manifest["capabilities"] == meta["capabilities"]

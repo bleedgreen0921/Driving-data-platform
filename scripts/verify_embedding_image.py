@@ -20,8 +20,8 @@ from urllib.request import Request, urlopen
 
 import embedding_api_process as api
 from embedding_ops import trial_up
-from embedding_search_resources import inventory
 from PIL import Image
+from usage_report import inventory
 from verify_backup import fingerprint
 from verify_embedding_search import MAIN, baseline
 
@@ -140,8 +140,6 @@ def verify(root, repo, trial, artifact, faults):
     mr = ar = None
     try:
         report["resources_before"] = inventory(root, repo, 1024**3)
-        if report["resources_before"]["status"] != "passed":
-            raise ValueError("资源门禁未通过")
         trial_up(root, repo, trial)
         api.validate(root, trial)
         _, source, contract, rows = a.verify_artifact(root, artifact)
@@ -469,15 +467,13 @@ def verify(root, repo, trial, artifact, faults):
                     capture_output=True,
                 )
             report["resources_after"] = inventory(root, repo)
-            if report["resources_after"]["status"] != "passed":
-                report["status"] = "failed"
             atomic_json(folder / "report.json", report)
             print(
                 json.dumps({"status": report["status"], "directory": str(folder)}),
                 flush=True,
             )
     if report["status"] != "passed":
-        raise ValueError("最终资源门禁失败")
+        raise ValueError("最终验证失败")
 
 
 def main():

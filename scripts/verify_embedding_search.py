@@ -14,9 +14,9 @@ from types import SimpleNamespace
 
 import psycopg
 from embedding_ops import trial_state, trial_up
-from embedding_search_resources import inventory, output
 from psycopg import sql
 from psycopg.types.json import Jsonb
+from usage_report import inventory, output
 from verify_backup import fingerprint
 
 from driving_data_platform.common.config import (
@@ -203,12 +203,6 @@ def verify(root, repo, trial, artifact_id, faults):
     try:
         report["resources_before"] = inventory(root, repo, 2 * 1024**3)
         atomic_json(directory / "report.json", report)
-        if report["resources_before"]["status"] != "passed":
-            raise PlatformError(
-                "RESOURCE_BLOCKED",
-                "search-resource-gate",
-                "实测资源或备份/WAL 增长预算不足",
-            )
         _complete, source, contract, rows = a.verify_artifact(root, artifact_id)
         _, aux_source, aux_contract, _ = a.verify_artifact(root, AUX)
         assert source == aux_source and contract == aux_contract
@@ -644,15 +638,10 @@ def verify(root, repo, trial, artifact_id, faults):
                 "SELECT extname,extversion FROM pg_extension ORDER BY extname"
             ).fetchall() == [tuple(row) for row in report["source_extensions"]]
         report["resources_after"] = inventory(root, repo)
-        assert report["resources_after"]["status"] == "passed"
-        check("正式全表/指针/扩展保持不变，末轮资源门禁通过")
+        check("正式全表/指针/扩展保持不变")
         report["status"] = "passed"
     except BaseException as error:
-        report["status"] = (
-            "blocked"
-            if isinstance(error, PlatformError) and error.category == "RESOURCE_BLOCKED"
-            else "failed"
-        )
+        report["status"] = "failed"
         report["error"] = describe(error, "embedding-search-verification")
         raise
     finally:

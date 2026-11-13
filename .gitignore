@@ -28,3 +28,4 @@ docs/
 configs/
 contracts/
 CHANGE_REQUESTS.md
+configs/application.example.yaml

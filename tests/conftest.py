@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,11 @@ from driving_data_platform.common.preflight import TABLES, digest
 def assets(tmp_path):
     repo = tmp_path / "repo"
     repo.mkdir()
+    (repo / "contracts").mkdir()
+    shutil.copy(
+        Path(__file__).resolve().parents[1] / "contracts/nuscenes-mini-v2.json",
+        repo / "contracts/nuscenes-mini-v2.json",
+    )
     data = tmp_path / "data"
     for directory in ("v1.0-mini", "samples", "sweeps", "maps"):
         (data / directory).mkdir(parents=True)

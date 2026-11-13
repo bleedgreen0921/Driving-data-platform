@@ -29,6 +29,6 @@ Metastore 已设为默认链路的一部分。实现与最新真实验收统一�
 
 默认 run/load 完成正式目录登记与消费。隔离 READY generation 不自动发布；日志位于外部 metastore/trials/<ID>/，故障只操作独立身份。
 
-`--faults` 覆盖部分登记、缺表、错误位置、外部表删除保留文件、缺文件预检及 Spark 阻断、停机及重建恢复；文件故障仅作用于复制产物。当前项目磁盘总上限为64 GiB，分类预算以配置为准，宿主和Docker盘各至少保留12 GiB；不自动删除任何缓存或历史 generation。
+`--faults` 覆盖部分登记、缺表、错误位置、外部表删除保留文件、缺文件预检及 Spark 阻断、停机及重建恢复；文件故障仅作用于复制产物。不自动删除任何缓存或历史 generation。
 
 配置依据 [Spark 官方 Hive 集成文档](https://spark.apache.org/docs/4.2.0/sql-data-sources-hive-tables.html)与 [Hive Java 要求](https://github.com/apache/hive/blob/master/README.md)，实际结论以本轮证据为准。分布式集群、大规模计算和机器级高可用不属于设计方向。

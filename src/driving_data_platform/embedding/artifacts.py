@@ -140,11 +140,13 @@ def json_bytes(value):
 def media_input(conn, generation):
     identity(generation, r"g_[a-f0-9]{64}")
     row = conn.execute(
-        "SELECT manifest_sha256 FROM control.generation WHERE generation=%s AND status='READY'",
+        "SELECT manifest_sha256, manifest->'capabilities'->>'original_media' FROM control.generation WHERE generation=%s AND status='READY'",
         (generation,),
     ).fetchone()
     if row is None:
         raise ValueError("指定业务 generation 不存在或未就绪")
+    if row[1] != "true":
+        raise ValueError("指定业务 generation 没有已校验的原始媒体")
     entries = []
     for media_id, frame_id, channel, payload in conn.execute(
         "SELECT entity_id,frame_id,channel,payload FROM serving.media WHERE generation=%s AND modality='camera' AND is_key_frame ORDER BY entity_id",

@@ -77,8 +77,8 @@ def test_legacy_report_skipped_without_rewrite(tmp_path):
     assert file.read_bytes() == original
 
 
-def test_old_generation_rejected():
-    with pytest.raises(ValueError, match="只读"):
+def test_incomplete_generation_rejected():
+    with pytest.raises(ValueError, match="禁止发布"):
         validate_publish_manifest({"status": "READY", "data_contract": {"id": "old"}})
 
 
@@ -196,7 +196,7 @@ def test_search_cli_invalid_argument_is_structured(tmp_path):
     assert json.loads(result.stdout)["status"] == "blocked"
 
 
-def test_active_legacy_generation_blocks_before_publish():
+def test_incomplete_active_generation_blocks_before_publish():
     from types import SimpleNamespace
 
     from driving_data_platform.publishing.store import validate_active_generation
@@ -206,7 +206,7 @@ def test_active_legacy_generation_blocks_before_publish():
             fetchone=lambda: ({"schema_version": "warehouse-schema-v1"},)
         )
     )
-    with pytest.raises(ValueError, match="另行迁移"):
+    with pytest.raises(ValueError, match="活动版本"):
         validate_active_generation(connection)
 
 

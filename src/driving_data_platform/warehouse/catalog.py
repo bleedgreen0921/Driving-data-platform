@@ -90,7 +90,15 @@ def new_trial(root: Path, source: Path):
     manifest = verify(source)
     if source.parent.resolve() != (root / "warehouse").resolve():
         raise ValueError("目录仅消费正式数仓目录内已完成的版本")
-    ods = root / "ingestion/snapshots" / (manifest["snapshot_id"] + "-nuscenes-ods-v1")
+    ods = (
+        root
+        / "ingestion/snapshots"
+        / (
+            manifest["snapshot_id"]
+            + "-"
+            + manifest.get("ods_processing_version", "nuscenes-ods-v2")
+        )
+    )
     verify_snapshot(ods)
     if digest(ods / "complete.json") != manifest["input_sha256"]:
         raise ValueError("数仓输入与 ODS 身份不一致")
@@ -142,7 +150,15 @@ def consume(root: Path, repo: Path, trial: Path, *, load_fail=False, ack_fail=Fa
     job(root, repo, trial, "consume")
     output = staging
     manifest = request["input_manifest"]
-    ods = root / "ingestion/snapshots" / (manifest["snapshot_id"] + "-nuscenes-ods-v1")
+    ods = (
+        root
+        / "ingestion/snapshots"
+        / (
+            manifest["snapshot_id"]
+            + "-"
+            + manifest.get("ods_processing_version", "nuscenes-ods-v2")
+        )
+    )
     counts = reconcile(ods, output)
     result = manifest | {
         "processing_version": manifest["processing_version"]

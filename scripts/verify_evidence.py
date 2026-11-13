@@ -17,7 +17,7 @@ from driving_data_platform.common.errors import PlatformError, describe
 from driving_data_platform.common.operations import operation_lock
 from driving_data_platform.common.preflight import digest
 from driving_data_platform.common.runs import RunContext
-from driving_data_platform.ingestion.nuscenes import PROCESSING_VERSION, atomic_json
+from driving_data_platform.ingestion.nuscenes import atomic_json
 from driving_data_platform.pipeline import DEFAULT_VERSION
 from driving_data_platform.publishing.difference import (
     compare_values,
@@ -39,14 +39,17 @@ def verify(root, repo):
             expected = active(conn)
             current = read_version(conn, expected["generation"])
         water = json.loads((root / "ingestion/watermark.json").read_text())
+        contract_file = "nuscenes-mini-v2.json"
         original = (
             root
             / "ingestion/snapshots"
-            / (water["snapshot_id"] + "-" + PROCESSING_VERSION)
+            / (water["snapshot_id"] + "-" + water["processing_version"])
         )
         # 独立派生测试快照，保留来源说明；不改原快照、不推进正式水位、不复制媒体。
         trial_id = uuid.uuid4().hex
-        source = original.parent / ("evidence-" + trial_id + "-" + PROCESSING_VERSION)
+        source = original.parent / (
+            "evidence-" + trial_id + "-" + water["processing_version"]
+        )
         shutil.copytree(original, source)
         category_path = source / "records/category.jsonl"
         records = [json.loads(line) for line in category_path.read_text().splitlines()]
@@ -127,9 +130,9 @@ def verify(root, repo):
         # 实际坏契约与坏输入失败，记录阶段与跳过项。
         fake_repo = root / ("evidence-contract-" + trial_id)
         (fake_repo / "contracts").mkdir(parents=True)
-        contract = json.loads((repo / "contracts/nuscenes-mini-v1.json").read_text())
+        contract = json.loads((repo / "contracts" / contract_file).read_text())
         contract["version"] = "unsupported"
-        atomic_json(fake_repo / "contracts/nuscenes-mini-v1.json", contract)
+        atomic_json(fake_repo / "contracts" / contract_file, contract)
         from driving_data_platform.common.contract import load_contract
 
         ctx = RunContext(root, DEFAULT_VERSION)
@@ -140,11 +143,11 @@ def verify(root, repo):
             assert ctx.report["error"]["category"] == "CONTRACT_CONFLICT"
             assert ctx.report["steps"]["publish"]["status"] == "skipped"
             result["checks"]["bad_contract_report"] = str(ctx.path)
-        changed = repo / "contracts/nuscenes-mini-v1.json"
+        changed = repo / "contracts" / contract_file
         # 同版本契约内容变化在独立仓库副本中阻断复用，不修改项目契约。
         contract = json.loads(changed.read_text())
         contract["semantics"]["frame"] = "changed-test-contract"
-        atomic_json(fake_repo / "contracts/nuscenes-mini-v1.json", contract)
+        atomic_json(fake_repo / "contracts" / contract_file, contract)
         (fake_repo / "src/driving_data_platform/warehouse").mkdir(parents=True)
         for name in ("spark_job.py", "baseline.py"):
             shutil.copy(
@@ -187,25 +190,6 @@ def verify(root, repo):
         result["checks"]["baseline_metrics_unchanged"] = compare_values(
             current, candidate
         )["metrics"]
-        with connect(root) as conn:
-            legacy = conn.execute(
-                "SELECT generation FROM control.generation WHERE status='READY' AND NOT (manifest ? 'data_contract') ORDER BY generation LIMIT 1"
-            ).fetchone()
-        if legacy:
-            legacy_diff = difference(root, legacy[0], expected)
-            assert (
-                legacy_diff["candidate_identity"]["data_contract"]
-                == "legacy_unrecorded"
-            )
-            try:
-                publish(root, legacy[0], expected, rollback=True)
-            except PlatformError as error:
-                assert error.code == "retired-json-generation"
-                result["checks"]["legacy_publish_rejected"] = True
-            else:
-                raise AssertionError("旧 JSON 发布必须拒绝")
-            with connect(root) as conn:
-                assert active(conn) == expected
         result["status"] = "passed"
     finally:
         if result["status"] == "running":

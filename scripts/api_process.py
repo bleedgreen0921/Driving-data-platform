@@ -54,6 +54,10 @@ def start(root: Path, repo: Path, deployment=None):
         if current.get("deployment") != deployment:
             raise ValueError("已有API部署身份不同，拒绝复用")
         return {"status": "passed", **current, "reused": True}
+    from driving_data_platform.common.config import embedding_enabled
+
+    if deployment and not embedding_enabled(root):
+        raise ValueError("embedding.enabled: false; refusing model deployment")
     if deployment:
         from psycopg.conninfo import make_conninfo
 

@@ -298,10 +298,18 @@ def lineage(root, repo, *, run_id=None, generation=None):
         result["data_contract"] = {
             k: contract.get(k) for k in ("contract_id", "version", "sha256")
         }
+    ods_version = warehouse.get(
+        "ods_processing_version",
+        manifest.get(
+            "ods_processing_version",
+            ods_step.get("result", {}).get("processing_version", "nuscenes-ods-v2"),
+        ),
+    )
+    identity(ods_version, r"[a-zA-Z0-9_-]{1,128}")
     if snapshot:
         identity(snapshot, r"[a-zA-Z0-9_-]{1,128}")
         ods, state, ref = completion(
-            f"ingestion/snapshots/{snapshot}-nuscenes-ods-v1/complete.json",
+            f"ingestion/snapshots/{snapshot}-{ods_version}/complete.json",
             warehouse.get("input_sha256")
             or manifest.get("input_sha256")
             or ods_step.get("completion_sha256"),
@@ -315,7 +323,7 @@ def lineage(root, repo, *, run_id=None, generation=None):
         checksum = ods.get("artifacts", {}).get("file-manifest.json")
         if checksum:
             files, file_state, file_ref = completion(
-                f"ingestion/snapshots/{snapshot}-nuscenes-ods-v1/file-manifest.json",
+                f"ingestion/snapshots/{snapshot}-{ods_version}/file-manifest.json",
                 checksum,
                 list,
             )
