@@ -1,9 +1,38 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.example
+data/
+models/
+weights/
+outputs/
+artifacts/
+logs/
+*.log
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+.DS_Store
+
+# Directory-level ignores for runtime and generated content.
 configs/
 contracts/
-docs/
-v1.0-mini/
-.env
-CHANGE_REQUESTS.md
 infra/
 sql/
-.DS_Store
+
+# Local working documents; keep out of the published repository.
+/docs/
+/CHANGE_REQUESTS.md
+
+# Local source metadata; preserve files outside version control.
+/v1.0-mini/

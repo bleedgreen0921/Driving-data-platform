@@ -35,4 +35,4 @@ docker compose --env-file "$DDP_NOCODB_ROOT/compose.env" -f infra/docker/compose
 
 `ods` 的原始字段已展开；`serving` 的部分字段存于 `payload` JSONB。服务表保留多个generation，查看特定版本时按generation筛选。媒体仍未校验，NocoDB不会补齐原图。
 
-安装和实际验证状态见[当前状态](../../docs/current-status.md)。
+安装和实际验证状态见本地 `../../docs/current-status.md`。

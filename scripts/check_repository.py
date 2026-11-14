@@ -82,13 +82,13 @@ def check(repo=REPO):
         ):
             errors.append(f"{relative}: retired reference")
     required = [
-        "docs/current-status.md",
-        "CHANGE_REQUESTS.md",
         "verify.sh",
         "requirements.lock",
-        "configs/application.example.yaml",
     ]
     for path, should_ignore in [(p, False) for p in required] + [
+        ("configs/application.example.yaml", True),
+        ("docs/current-status.md", True),
+        ("CHANGE_REQUESTS.md", True),
         (".env", True),
         ("configs/runtime.yaml", True),
         ("models/private.gguf", True),
@@ -102,6 +102,24 @@ def check(repo=REPO):
         )
         if result.returncode not in (0, 1) or (result.returncode == 0) != should_ignore:
             errors.append(f"{path}: unexpected git ignore rule")
+    for path in ("verify.sh", "requirements.lock", "configs/application.example.yaml"):
+        result = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", "--", path],
+            cwd=repo,
+            check=False,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            errors.append(f"{path}: required file must stay tracked")
+    for path in ("docs/current-status.md", "CHANGE_REQUESTS.md"):
+        result = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", "--", path],
+            cwd=repo,
+            check=False,
+            capture_output=True,
+        )
+        if result.returncode == 0:
+            errors.append(f"{path}: local working document must stay untracked")
     return errors
 
 
